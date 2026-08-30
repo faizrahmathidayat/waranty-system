@@ -19,7 +19,7 @@
                 @elseif($invoice)
                     <a href="{{ url('/invoice/show/'.$invoice->id_invoice) }}" class="btn btn-sm btn-primary">View Invoice</a>
                 @endif
-                @if($order->status === 'COMPLETED' && $invoice?->status === 'PAID' && !$warranty && $eligible)
+                @if($order->status === 'COMPLETED' && optional($invoice)->status === 'PAID' && !$warranty && $eligible)
                     <button class="btn btn-sm btn-success warranty-generate" data-id="{{ $order->id_order }}">Generate Warranty</button>
                 @elseif($warranty)
                     <a target="_blank" class="btn btn-sm btn-success" href="{{ route('warranty.digital',$warranty->kode_warranty) }}">View Warranty</a>
@@ -27,7 +27,7 @@
             </div>
         </div>
         <div class="card-body">
-            <div class="row"><div class="col-md-3"><b>Customer</b><br>{{ $order->customer?->nama_customer }}</div><div class="col-md-3"><b>Asset</b><br>{{ $order->order_type === 'BUILDING' ? $order->building?->nama_bangunan : trim(($order->vehicle?->no_polisi ?? '').' '.($order->vehicle?->merk ?? '')) }}</div><div class="col-md-3"><b>Order Status</b><br><span class="badge badge-info">{{ $order->status }}</span></div><div class="col-md-3"><b>Invoice</b><br>{{ $invoice?->status ?? '-' }}</div></div><hr>
+            <div class="row"><div class="col-md-3"><b>Customer</b><br>{{ optional($order->customer)->nama_customer }}</div><div class="col-md-3"><b>Asset</b><br>{{ $order->order_type === 'BUILDING' ? optional($order->building)->nama_bangunan : trim((optional($order->vehicle)->no_polisi ?? '').' '.(optional($order->vehicle)->merk ?? '')) }}</div><div class="col-md-3"><b>Order Status</b><br><span class="badge badge-info">{{ $order->status }}</span></div><div class="col-md-3"><b>Invoice</b><br>{{ optional($invoice)->status ?? '-' }}</div></div><hr>
             @foreach($order->details as $detail)
                 <div class="card card-outline card-secondary"><div class="card-header py-2"><b>{{ $detail->area ?: 'Item '.$loop->iteration }}</b></div><div class="card-body"><div class="row"><div class="col-md-3"><b>Treatment</b><br>{{ $detail->treatment_name_snapshot }}</div><div class="col-md-3"><b>Product</b><br>{{ $detail->product_name_snapshot }}{{ $detail->variant_name_snapshot ? ' - '.$detail->variant_name_snapshot : '' }}</div><div class="col-md-2"><b>Qty</b><br>{{ $detail->quantity }} {{ $detail->unit }}</div><div class="col-md-2"><b>Warranty</b><br>{{ $detail->warranty_eligible ? $detail->warranty_months_snapshot.' Bulan' : 'Tidak eligible' }}</div>@if($order->order_type === 'BUILDING')<div class="col-md-2"><b>Luas</b><br>{{ $detail->total_luas }} m²</div>@endif</div></div></div>
             @endforeach

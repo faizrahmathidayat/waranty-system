@@ -10,9 +10,9 @@
         </button>
       </div>
       <div class="modal-body">
-        <table class="table">
-          <form method="post" class="form-customer" id="form-customer">
-            @csrf
+        <form method="post" class="form-customer" id="form-customer">
+          @csrf
+          <table class="table">
             <tr>
               <td style="font-size: 15px; font-weight: bold;">Nama Customer</td>
               <td><input type="text" id="nama_customer" name="nama_customer" class="form-control" required="" autocomplete="off" value="">
@@ -42,6 +42,26 @@
               <td style="font-size: 15px; font-weight: bold;">Alamat</td>
               <td><textarea name="alamat" id="alamat" value="" class="form-control" style="height: 150px;" autocomplete="off"></textarea>
 
+              </td>
+            </tr>
+
+            <tr>
+              <td colspan="2">
+                <div class="d-flex justify-content-between align-items-center">
+                  <label class="font-weight-bold mb-0">Vehicle Baru</label>
+                  <button type="button" class="btn btn-sm btn-primary" id="addVehicleRow">+ Tambah Vehicle</button>
+                </div>
+                <div id="vehicleRows" class="mt-2"></div>
+              </td>
+            </tr>
+
+            <tr>
+              <td colspan="2">
+                <div class="d-flex justify-content-between align-items-center">
+                  <label class="font-weight-bold mb-0">Building Baru</label>
+                  <button type="button" class="btn btn-sm btn-primary" id="addBuildingRow">+ Tambah Building</button>
+                </div>
+                <div id="buildingRows" class="mt-2"></div>
               </td>
             </tr>
         </table>

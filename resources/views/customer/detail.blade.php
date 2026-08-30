@@ -57,7 +57,28 @@
                </td>
              </tr>
 
+             <tr>
+               <td colspan="2">
+                 <div class="d-flex justify-content-between align-items-center">
+                   <label class="font-weight-bold mb-0">Tambah Vehicle Baru</label>
+                   <button type="button" class="btn btn-sm btn-primary" id="addVehicleRowDetail">+ Tambah Vehicle</button>
+                 </div>
+                 <div id="vehicleRowsDetail" class="mt-2"></div>
+               </td>
+             </tr>
+
+             <tr>
+               <td colspan="2">
+                 <div class="d-flex justify-content-between align-items-center">
+                   <label class="font-weight-bold mb-0">Tambah Building Baru</label>
+                   <button type="button" class="btn btn-sm btn-primary" id="addBuildingRowDetail">+ Tambah Building</button>
+                 </div>
+                 <div id="buildingRowsDetail" class="mt-2"></div>
+               </td>
+             </tr>
+
            </table>
+
          </div>
          <div class="modal-footer bg-light">
            <button type="button" onclick="UpdateCustomer()" id="update_customer" class="btn btn-update-customer btn-success"><i class="fa fa-save"></i> Update</button>

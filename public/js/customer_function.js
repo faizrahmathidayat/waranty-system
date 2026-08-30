@@ -1,3 +1,17 @@
+// Prefer the specific per-field validation message (xhr.responseJSON.errors)
+// over Laravel's generic "The given data was invalid." wrapper text.
+function firstValidationError(xhr, fallback) {
+    var json = xhr && xhr.responseJSON;
+    if (json && json.errors) {
+        var firstField = Object.keys(json.errors)[0];
+        if (firstField && json.errors[firstField] && json.errors[firstField][0]) {
+            return json.errors[firstField][0];
+        }
+    }
+    if (json && json.message) return json.message;
+    return fallback;
+}
+
 //datatables customer
 $(function() {
     $('#tabel_customer').DataTable({
@@ -78,6 +92,9 @@ $(document).on('click', '#modal_tambah_customer button[type="reset"]', function 
     modal.find('.invalid-feedback').empty();
     modal.find('input:not([type="hidden"]), textarea').val('');
 
+    $('#vehicleRows').empty();
+    $('#buildingRows').empty();
+
     setTimeout(function () {
         modal.find('.is-invalid').removeClass('is-invalid');
         modal.find('.invalid-feedback').empty();
@@ -94,8 +111,52 @@ $(document).on('click', '#modal_tambah_customer button[type="reset"]', function 
       document.getElementById("alamat").value = "";
 
       $('#nama_customer,#no_hp,#email,#alamat').removeClass('is-invalid');
+
+      $('#vehicleRows').empty();
+      $('#buildingRows').empty();
     });
   });
+
+// ---- Vehicle / Building baris dinamis (Tambah Customer & Detail Customer) ----
+function customerVehicleRowHtml(idx) {
+    return '<div class="row align-items-center mb-2" data-row>' +
+        '<div class="col-6 col-md-2 mb-1"><input type="text" name="vehicles[' + idx + '][no_polisi]" class="form-control form-control-sm" placeholder="No Polisi"></div>' +
+        '<div class="col-6 col-md-2 mb-1"><input type="text" name="vehicles[' + idx + '][merk]" class="form-control form-control-sm" placeholder="Merk"></div>' +
+        '<div class="col-6 col-md-2 mb-1"><input type="text" name="vehicles[' + idx + '][model]" class="form-control form-control-sm" placeholder="Model/Tipe"></div>' +
+        '<div class="col-6 col-md-2 mb-1"><input type="text" name="vehicles[' + idx + '][warna]" class="form-control form-control-sm" placeholder="Warna"></div>' +
+        '<div class="col-8 col-md-2 mb-1"><input type="number" name="vehicles[' + idx + '][tahun]" class="form-control form-control-sm" placeholder="Tahun"></div>' +
+        '<div class="col-4 col-md-2 mb-1 text-right"><button type="button" class="btn btn-sm btn-danger remove-row"><i class="fa fa-trash"></i></button></div>' +
+        '</div>';
+}
+
+function customerBuildingRowHtml(idx) {
+    return '<div class="row align-items-center mb-2" data-row>' +
+        '<div class="col-12 col-md-4 mb-1"><input type="text" name="buildings[' + idx + '][nama_bangunan]" class="form-control form-control-sm" placeholder="Nama Bangunan"></div>' +
+        '<div class="col-10 col-md-7 mb-1"><input type="text" name="buildings[' + idx + '][alamat]" class="form-control form-control-sm" placeholder="Alamat"></div>' +
+        '<div class="col-2 col-md-1 mb-1 text-right"><button type="button" class="btn btn-sm btn-danger remove-row"><i class="fa fa-trash"></i></button></div>' +
+        '</div>';
+}
+
+var customerVehicleRowIndex = 0;
+var customerBuildingRowIndex = 0;
+var customerVehicleRowIndexDetail = 0;
+var customerBuildingRowIndexDetail = 0;
+
+$(document).on('click', '#addVehicleRow', function () {
+    $('#vehicleRows').append(customerVehicleRowHtml(customerVehicleRowIndex++));
+});
+$(document).on('click', '#addBuildingRow', function () {
+    $('#buildingRows').append(customerBuildingRowHtml(customerBuildingRowIndex++));
+});
+$(document).on('click', '#addVehicleRowDetail', function () {
+    $('#vehicleRowsDetail').append(customerVehicleRowHtml(customerVehicleRowIndexDetail++));
+});
+$(document).on('click', '#addBuildingRowDetail', function () {
+    $('#buildingRowsDetail').append(customerBuildingRowHtml(customerBuildingRowIndexDetail++));
+});
+$(document).on('click', '.remove-row', function () {
+    $(this).closest('[data-row]').remove();
+});
 
 
    //klik tombol simpan
@@ -191,12 +252,12 @@ $(document).on('click', '#modal_tambah_customer button[type="reset"]', function 
           });
         }
       },
-      error: function() {
+      error: function(xhr) {
+          var message = firstValidationError(xhr, 'Customer Gagal di simpan');
           Swal.fire({
               icon: 'error',
-              title: 'gagal!',
-              text: 'Customer Gagal di simpan',
-              timer: 3000
+              title: 'Gagal!',
+              text: message
           })
           $('#tabel_customer').DataTable().ajax.reload(null, false);
       },
@@ -298,7 +359,10 @@ $(document).on('change', '#status_customer', function () {
     $("#alamat_detail").attr("readonly", true);
 
     $('#nama_customer_detail,#no_hp_detail,#email_detail,#alamat_detail').removeClass('is-invalid');
-  
+
+    $('#vehicleRowsDetail').empty();
+    $('#buildingRowsDetail').empty();
+
   });
 
 
@@ -392,12 +456,13 @@ $(document).on('change', '#status_customer', function () {
             }
 
         },
-        error: function () {
+        error: function (xhr) {
 
+            var message = firstValidationError(xhr, 'Customer gagal diupdate');
             Swal.fire({
                 icon: 'error',
                 title: 'Gagal!',
-                text: 'Customer gagal diupdate'
+                text: message
             });
 
         }

@@ -11,6 +11,7 @@ class Customer extends Model
     use HasFactory;
     protected $primaryKey = 'id_customer';
     protected $table = 'customers';
+    protected $guarded = [];
 
     public function vehicles()
     {
@@ -37,14 +38,14 @@ class Customer extends Model
         return $this->hasMany(Warranty::class, 'id_customer', 'id_customer');
     }
 
-    protected function cek_duplikat_email($request)
+    public static function cek_duplikat_email($request)
     {
 
         $cek_duplikat_email = Customer::where('email',  $request['email'])->get()->count();
         return $cek_duplikat_email;
     }
 
-    protected function data_post_insert($request)
+    public static function data_post_insert($request)
     {
 
         $status    = 'enabled';
@@ -61,7 +62,7 @@ class Customer extends Model
         return $request;
     }
 
-    protected function cek_duplikat_email_update($request)
+    public static function cek_duplikat_email_update($request)
     {
         $datalama = Customer::find($request['id_customer']);
 
@@ -74,7 +75,7 @@ class Customer extends Model
         }
     }
 
-    protected function data_post_update($request)
+    public static function data_post_update($request)
     {
         $request = array(
             'nama_customer' => request('nama_customer_detail'),

@@ -17,7 +17,8 @@ class UsersTableSeedrs extends Seeder
         DB::table('login')->insert([
             'name'      => 'Super Admin',
             'username'  => 'superadmin',
-            'password'  => Hash::make('superadmin')
+            'password'  => Hash::make('superadmin'),
+            'role'      => 'Super Admin'
         ]);
     }
 }

@@ -20,16 +20,16 @@ class SeedSampleProducts extends Command
         }
 
         $products = [
-            ['KACA_FILM_MOBIL', 'Crystal Black', 'SolarPro', 'Chip Dyed', 60, 'KFM-CB01', 1500000],
-            ['KACA_FILM_MOBIL', 'Premium Dark', 'Optima', 'High Performance', 84, 'KFM-PD02', 2500000],
-            ['KACA_FILM_MOBIL', 'Ceramic Shield', 'Vantage', 'High Performance', 96, 'KFM-CS03', 3250000],
-            ['KACA_FILM_MOBIL', 'Magnetron Black', 'Lumina', 'Ultra Magnetron', 120, 'KFM-MB04', 4500000],
-            ['KACA_FILM_BANGUNAN', 'Solar Reflect', 'SolarPro', 'Reflective', 84, 'KFB-SR01', 350000],
-            ['KACA_FILM_BANGUNAN', 'Building Ceramic', 'Vantage', 'High Performance', 120, 'KFB-BC02', 550000],
-            ['PPF', 'Signature Clear', 'NexGuard', 'Signature', 60, 'PPF-SC01', 8500000],
-            ['PPF', 'Imperial Guard', 'NexGuard', 'Imperial Guard', 84, 'PPF-IG02', 12000000],
-            ['COATING', 'Ceramic Coating', 'Vantage', 'Ceramic Coating', 36, 'CT-CC01', 3500000],
-            ['COATING', 'Sapphire Coating', 'Vantage', 'Sapphire Coating', 60, 'CT-SC02', 5500000],
+            ['KACA_FILM_MOBIL', 'Crystal Black', 'SolarPro', 'Chip Dyed', 'KFM-CB01', 1500000],
+            ['KACA_FILM_MOBIL', 'Premium Dark', 'Optima', 'High Performance', 'KFM-PD02', 2500000],
+            ['KACA_FILM_MOBIL', 'Ceramic Shield', 'Vantage', 'High Performance', 'KFM-CS03', 3250000],
+            ['KACA_FILM_MOBIL', 'Magnetron Black', 'Lumina', 'Ultra Magnetron', 'KFM-MB04', 4500000],
+            ['KACA_FILM_BANGUNAN', 'Solar Reflect', 'SolarPro', 'Reflective', 'KFB-SR01', 350000],
+            ['KACA_FILM_BANGUNAN', 'Building Ceramic', 'Vantage', 'High Performance', 'KFB-BC02', 550000],
+            ['PPF', 'Signature Clear', 'NexGuard', 'Signature', 'PPF-SC01', 8500000],
+            ['PPF', 'Imperial Guard', 'NexGuard', 'Imperial Guard', 'PPF-IG02', 12000000],
+            ['COATING', 'Ceramic Coating', 'Vantage', 'Ceramic Coating', 'CT-CC01', 3500000],
+            ['COATING', 'Sapphire Coating', 'Vantage', 'Sapphire Coating', 'CT-SC02', 5500000],
         ];
 
         $createdProducts = 0;
@@ -39,7 +39,7 @@ class SeedSampleProducts extends Command
             $now = now();
             $mobileProductIds = [];
 
-            foreach ($products as [$typeKey, $name, $brand, $kind, $months, $code, $price]) {
+            foreach ($products as [$typeKey, $name, $brand, $kind, $code, $price]) {
                 $productId = DB::table('products')->where('kode_produk', $code)->value('id_product');
 
                 if (! $productId) {
@@ -51,7 +51,6 @@ class SeedSampleProducts extends Command
                         'jenis' => $kind,
                         'harga_default' => $price,
                         'is_warranty_eligible' => true,
-                        'masa_garansi_bulan' => $months,
                         'status' => 'enabled',
                         'created_at' => $now,
                         'updated_at' => $now,

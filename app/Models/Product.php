@@ -16,7 +16,6 @@ class Product extends Model
     protected $casts = [
         'is_warranty_eligible' => 'boolean',
         'harga_default' => 'decimal:2',
-        'masa_garansi_bulan' => 'integer',
     ];
 
     public function productType()
@@ -63,7 +62,6 @@ class Product extends Model
             'kode_produk'          => request('kode_produk'),
             'harga_default'        => request('harga_default'),
             'is_warranty_eligible' => request()->boolean('is_warranty_eligible', true),
-            'masa_garansi_bulan'   => request('masa_garansi_bulan'),
             'status'                => $status,
             'keterangan'           => request('keterangan')
 
@@ -108,7 +106,6 @@ class Product extends Model
             'kode_produk'          => request('kode_produk_detail'),
             'harga_default'        => request('harga_default_detail'),
             'is_warranty_eligible' => request()->boolean('is_warranty_eligible_detail', true),
-            'masa_garansi_bulan'   => request('masa_garansi_bulan_detail'),
             'keterangan'           => request('keterangan_detail'),
             'status'               => request('status')
 

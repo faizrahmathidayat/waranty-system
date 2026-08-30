@@ -63,13 +63,13 @@ class ServiceCompletionController extends Controller
                     'no_invoice' => $order->activeInvoice->invoice_number, 'no_polisi' => optional($order->vehicle)->no_polisi, 'merk_mobil' => optional($order->vehicle)->merk,
                     'tipe_mobil' => optional($order->vehicle)->model, 'warna_mobil' => optional($order->vehicle)->warna, 'tahun_mobil' => optional($order->vehicle)->tahun,
                     'installer' => optional($order->technician)->name, 'catatan' => $order->notes, 'tanggal_pasang' => $order->order_date->toDateString(),
-                    'tanggal_expired' => $items->max(fn ($item) => $order->order_date->copy()->addMonths($item->warranty_months_snapshot)->toDateString()), 'status' => 'Active',
+                    'tanggal_expired' => $items->max(fn ($item) => $item->tanggal_expired_snapshot->toDateString()), 'status' => 'Active',
                 ]);
                 foreach ($items as $item) {
                     $warranty->warrantyItems()->create([
                         'id_order_detail' => $item->id_order_detail, 'id_treatment' => $item->id_treatment, 'id_product' => $item->id_product, 'id_product_variant' => $item->id_product_variant,
                         'item_type' => $order->order_type, 'area' => $item->area, 'quantity' => $item->quantity, 'unit' => $item->unit, 'panjang' => $item->panjang, 'lebar' => $item->lebar, 'luas_per_item' => $item->luas_per_item, 'total_luas' => $item->total_luas,
-                        'tanggal_pasang' => $order->order_date->toDateString(), 'tanggal_expired' => $order->order_date->copy()->addMonths($item->warranty_months_snapshot)->toDateString(), 'status' => 'Active',
+                        'tanggal_pasang' => $order->order_date->toDateString(), 'tanggal_expired' => $item->tanggal_expired_snapshot->toDateString(), 'status' => 'Active',
                         'product_name_snapshot' => $item->product_name_snapshot, 'variant_name_snapshot' => $item->variant_name_snapshot, 'treatment_name_snapshot' => $item->treatment_name_snapshot, 'catatan' => $order->notes,
                     ]);
                 }

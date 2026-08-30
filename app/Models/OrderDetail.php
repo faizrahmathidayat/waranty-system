@@ -14,9 +14,9 @@ class OrderDetail extends Model
 
     protected $primaryKey = 'id_order_detail';
 
-    protected $fillable = ['id_order', 'id_treatment', 'id_product', 'id_product_variant', 'area', 'item_type', 'quantity', 'unit', 'panjang', 'lebar', 'luas_per_item', 'total_luas', 'unit_price', 'discount', 'subtotal', 'warranty_eligible', 'warranty_months_snapshot', 'service_status', 'completed_at', 'installer_id', 'product_name_snapshot', 'variant_name_snapshot', 'treatment_name_snapshot', 'notes'];
+    protected $fillable = ['id_order', 'id_treatment', 'id_product', 'id_product_variant', 'area', 'item_type', 'quantity', 'unit', 'panjang', 'lebar', 'luas_per_item', 'total_luas', 'unit_price', 'discount', 'subtotal', 'warranty_eligible', 'warranty_months_snapshot', 'tanggal_expired_snapshot', 'service_status', 'completed_at', 'installer_id', 'product_name_snapshot', 'variant_name_snapshot', 'treatment_name_snapshot', 'notes'];
 
-    protected $casts = ['quantity' => 'decimal:2', 'panjang' => 'decimal:2', 'lebar' => 'decimal:2', 'luas_per_item' => 'decimal:2', 'total_luas' => 'decimal:2', 'unit_price' => 'decimal:2', 'discount' => 'decimal:2', 'subtotal' => 'decimal:2', 'warranty_eligible' => 'boolean', 'warranty_months_snapshot' => 'integer', 'completed_at' => 'datetime'];
+    protected $casts = ['quantity' => 'decimal:2', 'panjang' => 'decimal:2', 'lebar' => 'decimal:2', 'luas_per_item' => 'decimal:2', 'total_luas' => 'decimal:2', 'unit_price' => 'decimal:2', 'discount' => 'decimal:2', 'subtotal' => 'decimal:2', 'warranty_eligible' => 'boolean', 'warranty_months_snapshot' => 'integer', 'tanggal_expired_snapshot' => 'date', 'completed_at' => 'datetime'];
 
     public function order(): BelongsTo { return $this->belongsTo(Order::class, 'id_order', 'id_order'); }
     public function treatment(): BelongsTo { return $this->belongsTo(Treatment::class, 'id_treatment', 'id_treatment'); }

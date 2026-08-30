@@ -31,7 +31,7 @@ class OrderInvoiceWarrantyFlowTest extends TestCase
         $this->actingAs(Login::factory()->create());
     }
 
-    private function makeAutomotiveOrder(int $warrantyMonths = 6): array
+    private function makeAutomotiveOrder(): array
     {
         $customer = Customer::factory()->create();
         $vehicle = Vehicle::factory()->create(['id_customer' => $customer->id_customer]);
@@ -42,13 +42,12 @@ class OrderInvoiceWarrantyFlowTest extends TestCase
             'id_product_type' => $productType->id_product_type,
             'status' => 'enabled',
             'is_warranty_eligible' => true,
-            'masa_garansi_bulan' => $warrantyMonths,
         ]);
 
         return compact('customer', 'vehicle', 'technician', 'productType', 'treatment', 'product');
     }
 
-    private function storeOrder(array $parts): int
+    private function storeOrder(array $parts, int $warrantyMonths = 6): int
     {
         $response = $this->postJson('/order/store', [
             'order_type' => 'AUTOMOTIVE',
@@ -63,6 +62,7 @@ class OrderInvoiceWarrantyFlowTest extends TestCase
                 'area' => 'Full Body',
                 'quantity' => 1,
                 'unit_price' => 500000,
+                'warranty_months' => $warrantyMonths,
             ]],
         ]);
 
@@ -73,15 +73,22 @@ class OrderInvoiceWarrantyFlowTest extends TestCase
 
     public function test_full_order_to_warranty_happy_path(): void
     {
-        $parts = $this->makeAutomotiveOrder(6);
+        $parts = $this->makeAutomotiveOrder();
 
         // 1. Create the order.
-        $idOrder = $this->storeOrder($parts);
+        $idOrder = $this->storeOrder($parts, 6);
         $order = Order::findOrFail($idOrder);
         $this->assertSame('OPEN', $order->status);
         $this->assertStringStartsWith('ORD'.now()->format('Y'), $order->order_number);
         $this->assertSame(1, $order->details()->count());
         $this->assertEquals(500000, (float) $order->grand_total);
+
+        $detail = $order->details()->first();
+        $this->assertSame(6, $detail->warranty_months_snapshot);
+        $this->assertSame(
+            $order->order_date->copy()->addMonths(6)->toDateString(),
+            $detail->tanggal_expired_snapshot->toDateString()
+        );
 
         // 2. Generate an invoice from the order.
         $invoiceResponse = $this->postJson("/invoice/generate/{$idOrder}");
@@ -175,6 +182,60 @@ class OrderInvoiceWarrantyFlowTest extends TestCase
         $this->postJson("/order/{$idOrder}/generate-warranty")
             ->assertStatus(422)
             ->assertJsonValidationErrors('order');
+    }
+
+    public function test_warranty_months_is_required_per_item_for_a_warranty_eligible_product(): void
+    {
+        $parts = $this->makeAutomotiveOrder();
+
+        $response = $this->postJson('/order/store', [
+            'order_type' => 'AUTOMOTIVE',
+            'id_customer' => $parts['customer']->id_customer,
+            'id_vehicle' => $parts['vehicle']->id_vehicle,
+            'id_technician' => $parts['technician']->id_technician,
+            'order_date' => now()->toDateString(),
+            'discount' => 0,
+            'details' => [[
+                'id_treatment' => $parts['treatment']->id_treatment,
+                'id_product' => $parts['product']->id_product,
+                'area' => 'Full Body',
+                'quantity' => 1,
+                'unit_price' => 500000,
+                // warranty_months omitted on purpose.
+            ]],
+        ]);
+
+        $response->assertStatus(422)->assertJsonValidationErrors(['details.0.warranty_months']);
+        $this->assertSame(0, Order::count());
+    }
+
+    public function test_warranty_months_is_not_required_for_a_non_warranty_eligible_product(): void
+    {
+        $parts = $this->makeAutomotiveOrder();
+        $parts['product']->is_warranty_eligible = false;
+        $parts['product']->save();
+
+        $response = $this->postJson('/order/store', [
+            'order_type' => 'AUTOMOTIVE',
+            'id_customer' => $parts['customer']->id_customer,
+            'id_vehicle' => $parts['vehicle']->id_vehicle,
+            'id_technician' => $parts['technician']->id_technician,
+            'order_date' => now()->toDateString(),
+            'discount' => 0,
+            'details' => [[
+                'id_treatment' => $parts['treatment']->id_treatment,
+                'id_product' => $parts['product']->id_product,
+                'area' => 'Full Body',
+                'quantity' => 1,
+                'unit_price' => 500000,
+            ]],
+        ]);
+
+        $response->assertStatus(201);
+        $detail = Order::findOrFail($response->json('id_order'))->details()->first();
+        $this->assertFalse($detail->warranty_eligible);
+        $this->assertNull($detail->warranty_months_snapshot);
+        $this->assertNull($detail->tanggal_expired_snapshot);
     }
 
     public function test_invoice_cannot_be_generated_from_an_order_without_details(): void

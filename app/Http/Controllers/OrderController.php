@@ -11,6 +11,7 @@ use App\Models\Treatment;
 use App\Models\Technician;
 use App\Models\Vehicle;
 use App\Services\AutomotiveOrderCatalog;
+use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -154,7 +155,7 @@ class OrderController extends Controller
         $products = Product::query()->join('product_types', 'product_types.id_product_type', '=', 'products.id_product_type')
             ->where('products.status', 'enabled')->where('product_types.is_active', true)->where('product_types.order_category', $orderType)
             ->orderBy('products.brand')->orderBy('products.nama_produk')
-            ->get(['products.id_product', 'products.brand', 'products.nama_produk', 'products.harga_default', 'products.masa_garansi_bulan', 'products.is_warranty_eligible']);
+            ->get(['products.id_product', 'products.brand', 'products.nama_produk', 'products.harga_default', 'products.is_warranty_eligible']);
         return response()->json(['data' => $products]);
     }
 
@@ -214,7 +215,7 @@ class OrderController extends Controller
                 throw ValidationException::withMessages(['id_building' => 'Building wajib dipilih dan harus milik customer yang dipilih.']);
             }
         }
-        $details = $this->validatedDetails($header['details'], $header['order_type']);
+        $details = $this->validatedDetails($header['details'], $header['order_type'], $header['order_date']);
         $subtotal = round(collect($details)->sum('subtotal'), 2);
         $discount = round((float) ($header['discount'] ?? 0), 2);
         if ($discount > $subtotal) throw ValidationException::withMessages(['discount' => 'Discount header tidak boleh melebihi subtotal.']);
@@ -245,12 +246,12 @@ class OrderController extends Controller
         throw new \RuntimeException('Tidak dapat membuat nomor order.');
     }
 
-    private function validatedDetails(array $items, string $orderType): array
+    private function validatedDetails(array $items, string $orderType, string $orderDate): array
     {
         $result = [];
         $duplicates = [];
         foreach ($items as $index => $item) {
-            $data = Validator::make($item, ['id_treatment' => 'required|integer', 'id_product' => 'required|integer', 'id_product_variant' => 'nullable|integer', 'area' => $orderType === 'BUILDING' ? 'required|string|max:150' : 'nullable|string|max:150', 'area_custom' => 'nullable|string|max:150', 'total_luas' => $orderType === 'BUILDING' ? 'required|numeric|gt:0' : 'nullable|numeric', 'panjang' => 'nullable|numeric', 'lebar' => 'nullable|numeric', 'quantity' => 'required|numeric|gt:0', 'unit' => 'nullable|in:unit,m2,panel', 'unit_price' => 'nullable|numeric|min:0', 'discount' => 'nullable|numeric|min:0', 'discount_type' => 'nullable|in:NOMINAL,PERCENT'], [
+            $data = Validator::make($item, ['id_treatment' => 'required|integer', 'id_product' => 'required|integer', 'id_product_variant' => 'nullable|integer', 'area' => $orderType === 'BUILDING' ? 'required|string|max:150' : 'nullable|string|max:150', 'area_custom' => 'nullable|string|max:150', 'total_luas' => $orderType === 'BUILDING' ? 'required|numeric|gt:0' : 'nullable|numeric', 'panjang' => 'nullable|numeric', 'lebar' => 'nullable|numeric', 'quantity' => 'required|numeric|gt:0', 'unit' => 'nullable|in:unit,m2,panel', 'unit_price' => 'nullable|numeric|min:0', 'discount' => 'nullable|numeric|min:0', 'discount_type' => 'nullable|in:NOMINAL,PERCENT', 'warranty_months' => 'nullable|integer|min:1|max:600'], [
                 'id_treatment.required' => 'Treatment harus diisi terlebih dahulu.', 'id_treatment.integer' => 'Treatment tidak valid.',
                 'id_product.required' => 'Product harus diisi terlebih dahulu.', 'id_product.integer' => 'Product tidak valid.',
                 'area.required' => 'Area harus diisi terlebih dahulu.',
@@ -259,6 +260,7 @@ class OrderController extends Controller
                 'unit_price.numeric' => 'Harga harus berupa angka.', 'unit_price.min' => 'Harga tidak boleh negatif.',
                 'discount.numeric' => 'Discount harus berupa angka.', 'discount.min' => 'Discount tidak boleh negatif.',
                 'discount_type.in' => 'Jenis discount tidak valid.',
+                'warranty_months.integer' => 'Masa Garansi harus berupa angka bulat.', 'warranty_months.min' => 'Masa Garansi harus lebih besar dari nol.',
             ])->validate();
             $treatment = Treatment::where('is_active', true)->find($data['id_treatment']);
             if (!$treatment || $treatment->order_category !== $orderType) throw ValidationException::withMessages(["details.$index.id_treatment" => 'Treatment tidak valid untuk kategori Order ini.']);
@@ -302,7 +304,20 @@ class OrderController extends Controller
             $key = implode('|', [$treatment->id_treatment, mb_strtolower($area), $product->id_product, optional($variant)->id_product_variant]);
             if (isset($duplicates[$key])) throw ValidationException::withMessages(["details.$index" => 'Item dengan treatment, area, product, dan variant yang sama sudah ada.']);
             $duplicates[$key] = true;
-            $result[] = ['id_treatment' => $treatment->id_treatment, 'id_product' => $product->id_product, 'id_product_variant' => optional($variant)->id_product_variant, 'area' => $area ?: null, 'item_type' => $orderType, 'quantity' => $quantity, 'unit' => $unit, 'panjang' => $panjang, 'lebar' => $lebar, 'luas_per_item' => $luasPerItem, 'total_luas' => $totalLuas, 'unit_price' => $unitPrice, 'discount' => $discount, 'subtotal' => $gross - $discount, 'warranty_eligible' => (bool) $product->is_warranty_eligible, 'warranty_months_snapshot' => $product->masa_garansi_bulan, 'service_status' => 'PENDING', 'product_name_snapshot' => trim($product->brand . ' - ' . $product->nama_produk, ' - '), 'variant_name_snapshot' => optional($variant)->name, 'treatment_name_snapshot' => $treatment->name, 'notes' => null];
+            // Warranty length is entered per order item rather than fixed on the
+            // product master, so the expiry date is a snapshot taken from this
+            // order's date at the time the item is saved.
+            $warrantyEligible = (bool) $product->is_warranty_eligible;
+            $warrantyMonths = null;
+            $expiredSnapshot = null;
+            if ($warrantyEligible) {
+                if (($data['warranty_months'] ?? null) === null || $data['warranty_months'] === '') {
+                    throw ValidationException::withMessages(["details.$index.warranty_months" => 'Masa Garansi (bulan) wajib diisi untuk product ini.']);
+                }
+                $warrantyMonths = (int) $data['warranty_months'];
+                $expiredSnapshot = Carbon::parse($orderDate)->addMonths($warrantyMonths)->toDateString();
+            }
+            $result[] = ['id_treatment' => $treatment->id_treatment, 'id_product' => $product->id_product, 'id_product_variant' => optional($variant)->id_product_variant, 'area' => $area ?: null, 'item_type' => $orderType, 'quantity' => $quantity, 'unit' => $unit, 'panjang' => $panjang, 'lebar' => $lebar, 'luas_per_item' => $luasPerItem, 'total_luas' => $totalLuas, 'unit_price' => $unitPrice, 'discount' => $discount, 'subtotal' => $gross - $discount, 'warranty_eligible' => $warrantyEligible, 'warranty_months_snapshot' => $warrantyMonths, 'tanggal_expired_snapshot' => $expiredSnapshot, 'service_status' => 'PENDING', 'product_name_snapshot' => trim($product->brand . ' - ' . $product->nama_produk, ' - '), 'variant_name_snapshot' => optional($variant)->name, 'treatment_name_snapshot' => $treatment->name, 'notes' => null];
         }
         return $result;
     }

@@ -16,7 +16,6 @@ class ProductFactory extends Factory
             'nama_produk' => $this->faker->words(3, true),
             'brand' => $this->faker->company(),
             'jenis' => $this->faker->word(),
-            'masa_garansi_bulan' => 12,
             'status' => 'enabled',
             'keterangan' => null,
             'id_product_type' => ProductType::factory(),

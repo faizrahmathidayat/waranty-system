@@ -60,9 +60,9 @@ class ServiceCompletionController extends Controller
                     'kode_warranty' => 'WR'.date('Y').str_pad($last + 1, 3, '0', STR_PAD_LEFT), 'pin_warranty' => (string) random_int(100000, 999999),
                     'id_customer' => $order->id_customer, 'id_order' => $order->id_order, 'id_invoice' => $order->activeInvoice->id_invoice,
                     'id_vehicle' => $order->id_vehicle, 'id_building' => $order->id_building, 'id_warranty_type' => $type->id, 'user_id' => Auth::id(), 'id_product' => $first->id_product,
-                    'no_invoice' => $order->activeInvoice->invoice_number, 'no_polisi' => $order->vehicle?->no_polisi, 'merk_mobil' => $order->vehicle?->merk,
-                    'tipe_mobil' => $order->vehicle?->model, 'warna_mobil' => $order->vehicle?->warna, 'tahun_mobil' => $order->vehicle?->tahun,
-                    'installer' => $order->technician?->name, 'catatan' => $order->notes, 'tanggal_pasang' => $order->order_date->toDateString(),
+                    'no_invoice' => $order->activeInvoice->invoice_number, 'no_polisi' => optional($order->vehicle)->no_polisi, 'merk_mobil' => optional($order->vehicle)->merk,
+                    'tipe_mobil' => optional($order->vehicle)->model, 'warna_mobil' => optional($order->vehicle)->warna, 'tahun_mobil' => optional($order->vehicle)->tahun,
+                    'installer' => optional($order->technician)->name, 'catatan' => $order->notes, 'tanggal_pasang' => $order->order_date->toDateString(),
                     'tanggal_expired' => $items->max(fn ($item) => $order->order_date->copy()->addMonths($item->warranty_months_snapshot)->toDateString()), 'status' => 'Active',
                 ]);
                 foreach ($items as $item) {

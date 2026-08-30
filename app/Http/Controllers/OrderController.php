@@ -299,10 +299,10 @@ class OrderController extends Controller
                 ? round($gross * $discountValue / 100, 2)
                 : $discountValue;
             if ($discount > $gross) throw ValidationException::withMessages(["details.$index.discount" => 'Discount item tidak boleh melebihi gross item.']);
-            $key = implode('|', [$treatment->id_treatment, mb_strtolower($area), $product->id_product, $variant?->id_product_variant]);
+            $key = implode('|', [$treatment->id_treatment, mb_strtolower($area), $product->id_product, optional($variant)->id_product_variant]);
             if (isset($duplicates[$key])) throw ValidationException::withMessages(["details.$index" => 'Item dengan treatment, area, product, dan variant yang sama sudah ada.']);
             $duplicates[$key] = true;
-            $result[] = ['id_treatment' => $treatment->id_treatment, 'id_product' => $product->id_product, 'id_product_variant' => $variant?->id_product_variant, 'area' => $area ?: null, 'item_type' => $orderType, 'quantity' => $quantity, 'unit' => $unit, 'panjang' => $panjang, 'lebar' => $lebar, 'luas_per_item' => $luasPerItem, 'total_luas' => $totalLuas, 'unit_price' => $unitPrice, 'discount' => $discount, 'subtotal' => $gross - $discount, 'warranty_eligible' => (bool) $product->is_warranty_eligible, 'warranty_months_snapshot' => $product->masa_garansi_bulan, 'service_status' => 'PENDING', 'product_name_snapshot' => trim($product->brand . ' - ' . $product->nama_produk, ' - '), 'variant_name_snapshot' => $variant?->name, 'treatment_name_snapshot' => $treatment->name, 'notes' => null];
+            $result[] = ['id_treatment' => $treatment->id_treatment, 'id_product' => $product->id_product, 'id_product_variant' => optional($variant)->id_product_variant, 'area' => $area ?: null, 'item_type' => $orderType, 'quantity' => $quantity, 'unit' => $unit, 'panjang' => $panjang, 'lebar' => $lebar, 'luas_per_item' => $luasPerItem, 'total_luas' => $totalLuas, 'unit_price' => $unitPrice, 'discount' => $discount, 'subtotal' => $gross - $discount, 'warranty_eligible' => (bool) $product->is_warranty_eligible, 'warranty_months_snapshot' => $product->masa_garansi_bulan, 'service_status' => 'PENDING', 'product_name_snapshot' => trim($product->brand . ' - ' . $product->nama_produk, ' - '), 'variant_name_snapshot' => optional($variant)->name, 'treatment_name_snapshot' => $treatment->name, 'notes' => null];
         }
         return $result;
     }

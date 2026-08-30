@@ -67,8 +67,17 @@ class CustomerController extends Controller
             return redirect()->to('/login');
         }
 
-        $show = Customer::findOrFail($id_customer);
-        echo json_encode($show);
+        $customer = Customer::findOrFail($id_customer);
+        $data = $customer->toArray();
+        $data['vehicles'] = $customer->vehicles()->get()->map(function ($vehicle) {
+            $vehicle->has_transaction = $vehicle->orders()->exists() || $vehicle->warranties()->exists();
+            return $vehicle;
+        });
+        $data['buildings'] = $customer->buildings()->get()->map(function ($building) {
+            $building->has_transaction = $building->orders()->exists() || $building->warranties()->exists();
+            return $building;
+        });
+        return response()->json($data);
     }
 
     public function update(Request $request)

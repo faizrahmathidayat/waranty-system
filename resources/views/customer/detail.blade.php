@@ -59,9 +59,16 @@
 
              <tr>
                <td colspan="2">
+                 <label class="font-weight-bold mb-0">Vehicle</label>
+                 <div id="vehicleRowsExistingDetail" class="mt-2"></div>
+               </td>
+             </tr>
+
+             <tr>
+               <td colspan="2">
                  <div class="d-flex justify-content-between align-items-center">
                    <label class="font-weight-bold mb-0">Tambah Vehicle Baru</label>
-                   <button type="button" class="btn btn-sm btn-primary" id="addVehicleRowDetail">+ Tambah Vehicle</button>
+                   <button type="button" class="btn btn-sm btn-primary" id="addVehicleRowDetail" disabled>+ Tambah Vehicle</button>
                  </div>
                  <div id="vehicleRowsDetail" class="mt-2"></div>
                </td>
@@ -69,9 +76,16 @@
 
              <tr>
                <td colspan="2">
+                 <label class="font-weight-bold mb-0">Building</label>
+                 <div id="buildingRowsExistingDetail" class="mt-2"></div>
+               </td>
+             </tr>
+
+             <tr>
+               <td colspan="2">
                  <div class="d-flex justify-content-between align-items-center">
                    <label class="font-weight-bold mb-0">Tambah Building Baru</label>
-                   <button type="button" class="btn btn-sm btn-primary" id="addBuildingRowDetail">+ Tambah Building</button>
+                   <button type="button" class="btn btn-sm btn-primary" id="addBuildingRowDetail" disabled>+ Tambah Building</button>
                  </div>
                  <div id="buildingRowsDetail" class="mt-2"></div>
                </td>

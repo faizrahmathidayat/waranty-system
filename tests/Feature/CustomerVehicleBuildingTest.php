@@ -3,8 +3,12 @@
 namespace Tests\Feature;
 
 use App\Http\Middleware\VerifyCsrfToken;
+use App\Models\Building;
 use App\Models\Customer;
 use App\Models\Login;
+use App\Models\Order;
+use App\Models\Technician;
+use App\Models\Vehicle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -136,5 +140,37 @@ class CustomerVehicleBuildingTest extends TestCase
         $this->assertSame('D 111 AA', $customer->vehicles()->first()->no_polisi);
         $this->assertSame(1, $customer->buildings()->count());
         $this->assertSame('Gudang B', $customer->buildings()->first()->nama_bangunan);
+    }
+
+    public function test_show_includes_existing_vehicles_and_buildings_with_a_transaction_flag(): void
+    {
+        $customer = Customer::factory()->create();
+        $vehicleWithOrder = Vehicle::factory()->create(['id_customer' => $customer->id_customer]);
+        $vehicleWithoutOrder = Vehicle::factory()->create(['id_customer' => $customer->id_customer]);
+        $building = Building::factory()->create(['id_customer' => $customer->id_customer]);
+        $technician = Technician::factory()->create();
+
+        Order::create([
+            'order_number' => 'ORDTEST0001',
+            'id_customer' => $customer->id_customer,
+            'order_type' => 'AUTOMOTIVE',
+            'id_vehicle' => $vehicleWithOrder->id_vehicle,
+            'id_technician' => $technician->id_technician,
+            'order_date' => now()->toDateString(),
+            'status' => 'OPEN',
+        ]);
+
+        $response = $this->getJson('/customer/show/'.$customer->id_customer);
+        $response->assertOk();
+        $json = $response->json();
+
+        $this->assertCount(2, $json['vehicles']);
+        $this->assertCount(1, $json['buildings']);
+
+        $vehiclesById = collect($json['vehicles'])->keyBy('id_vehicle');
+        $this->assertTrue($vehiclesById[$vehicleWithOrder->id_vehicle]['has_transaction']);
+        $this->assertFalse($vehiclesById[$vehicleWithoutOrder->id_vehicle]['has_transaction']);
+        $this->assertFalse($json['buildings'][0]['has_transaction']);
+        $this->assertSame($building->nama_bangunan, $json['buildings'][0]['nama_bangunan']);
     }
 }

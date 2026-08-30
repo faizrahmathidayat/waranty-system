@@ -12,6 +12,47 @@ function firstValidationError(xhr, fallback) {
     return fallback;
 }
 
+function customerCsrfToken() {
+    return $('meta[name="csrf-token"]').attr('content');
+}
+
+function customerEscapeAttr(value) {
+    return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Existing vehicle/building rows shown in Detail Customer: read-only until
+// Edit is clicked, then editable with a per-row Simpan + Nonaktifkan action.
+// Nonaktifkan is disabled when the record already has an order/warranty
+// (has_transaction) or is already inactive -- there's nothing to deactivate.
+function renderExistingVehicleRowDetail(v) {
+    var deactivateDisabled = (v.has_transaction || v.status === 'inactive') ? 'disabled' : '';
+    return '<div class="row align-items-center mb-2 existing-row" data-existing-vehicle="' + v.id_vehicle + '" data-status="' + customerEscapeAttr(v.status) + '">' +
+        '<div class="col-6 col-md-2 mb-1"><input type="text" class="form-control form-control-sm existing-field" data-field="no_polisi" value="' + customerEscapeAttr(v.no_polisi) + '" disabled placeholder="No Polisi"></div>' +
+        '<div class="col-6 col-md-2 mb-1"><input type="text" class="form-control form-control-sm existing-field" data-field="merk" value="' + customerEscapeAttr(v.merk) + '" disabled placeholder="Merk"></div>' +
+        '<div class="col-6 col-md-2 mb-1"><input type="text" class="form-control form-control-sm existing-field" data-field="model" value="' + customerEscapeAttr(v.model) + '" disabled placeholder="Model/Tipe"></div>' +
+        '<div class="col-6 col-md-2 mb-1"><input type="text" class="form-control form-control-sm existing-field" data-field="warna" value="' + customerEscapeAttr(v.warna) + '" disabled placeholder="Warna"></div>' +
+        '<div class="col-8 col-md-2 mb-1"><input type="number" class="form-control form-control-sm existing-field" data-field="tahun" value="' + customerEscapeAttr(v.tahun) + '" disabled placeholder="Tahun"></div>' +
+        '<div class="col-4 col-md-2 mb-1 text-right existing-row-actions d-none">' +
+        '<button type="button" class="btn btn-sm btn-success save-existing-vehicle" title="Simpan"><i class="fa fa-save"></i></button> ' +
+        '<button type="button" class="btn btn-sm btn-danger deactivate-existing-vehicle" title="Nonaktifkan" ' + deactivateDisabled + '><i class="fa fa-ban"></i></button>' +
+        '</div>' +
+        '</div>';
+}
+
+function renderExistingBuildingRowDetail(b) {
+    var deactivateDisabled = (b.has_transaction || b.status === 'inactive') ? 'disabled' : '';
+    return '<div class="row align-items-center mb-2 existing-row" data-existing-building="' + b.id_building + '" data-status="' + customerEscapeAttr(b.status) + '">' +
+        '<div class="col-12 col-md-4 mb-1"><input type="text" class="form-control form-control-sm existing-field" data-field="nama_bangunan" value="' + customerEscapeAttr(b.nama_bangunan) + '" disabled placeholder="Nama Bangunan"></div>' +
+        '<div class="col-8 col-md-6 mb-1"><input type="text" class="form-control form-control-sm existing-field" data-field="alamat" value="' + customerEscapeAttr(b.alamat) + '" disabled placeholder="Alamat"></div>' +
+        '<div class="col-4 col-md-2 mb-1 text-right existing-row-actions d-none">' +
+        '<button type="button" class="btn btn-sm btn-success save-existing-building" title="Simpan"><i class="fa fa-save"></i></button> ' +
+        '<button type="button" class="btn btn-sm btn-danger deactivate-existing-building" title="Nonaktifkan" ' + deactivateDisabled + '><i class="fa fa-ban"></i></button>' +
+        '</div>' +
+        '</div>';
+}
+
 //datatables customer
 $(function() {
     $('#tabel_customer').DataTable({
@@ -318,6 +359,21 @@ $(document).on('click', '.remove-row', function () {
                 document.getElementById('hapus_customer').style.display = '';
             }
 
+            $('#vehicleRowsExistingDetail').empty();
+            (data.vehicles || []).forEach(function (v) {
+                $('#vehicleRowsExistingDetail').append(renderExistingVehicleRowDetail(v));
+            });
+            $('#buildingRowsExistingDetail').empty();
+            (data.buildings || []).forEach(function (b) {
+                $('#buildingRowsExistingDetail').append(renderExistingBuildingRowDetail(b));
+            });
+
+            $('#vehicleRowsDetail').empty();
+            $('#buildingRowsDetail').empty();
+            customerVehicleRowIndexDetail = 0;
+            customerBuildingRowIndexDetail = 0;
+            $('#addVehicleRowDetail, #addBuildingRowDetail').prop('disabled', true);
+
         }
     });
 });
@@ -335,7 +391,11 @@ $('body').on('click', '#edit_customer', function() {
     $("#alamat_detail").attr("readonly", false);
 
     $('#status_customer').prop('disabled', false);
-  
+
+    $('#vehicleRowsExistingDetail .existing-field, #buildingRowsExistingDetail .existing-field').prop('disabled', false);
+    $('#vehicleRowsExistingDetail .existing-row-actions, #buildingRowsExistingDetail .existing-row-actions').removeClass('d-none');
+    $('#addVehicleRowDetail, #addBuildingRowDetail').prop('disabled', false);
+
   });
 
 // Keep the hidden value compatible with Customer's existing enabled/disabled
@@ -362,6 +422,9 @@ $(document).on('change', '#status_customer', function () {
 
     $('#vehicleRowsDetail').empty();
     $('#buildingRowsDetail').empty();
+    $('#vehicleRowsExistingDetail').empty();
+    $('#buildingRowsExistingDetail').empty();
+    $('#addVehicleRowDetail, #addBuildingRowDetail').prop('disabled', true);
 
   });
 
@@ -470,6 +533,90 @@ $(document).on('change', '#status_customer', function () {
     });
 
 }
+
+// ---- Existing vehicle/building rows: per-row Simpan / Nonaktifkan (Detail Customer) ----
+$(document).on('click', '.save-existing-vehicle', function () {
+    var $row = $(this).closest('[data-existing-vehicle]');
+    var payload = {
+        _token: customerCsrfToken(),
+        id_vehicle: $row.data('existing-vehicle'),
+        id_customer: $('#id_customer').val(),
+        status: $row.data('status'),
+        no_polisi: $row.find('[data-field="no_polisi"]').val(),
+        merk: $row.find('[data-field="merk"]').val(),
+        model: $row.find('[data-field="model"]').val(),
+        warna: $row.find('[data-field="warna"]').val(),
+        tahun: $row.find('[data-field="tahun"]').val()
+    };
+    $.post('/vehicle/update', payload).done(function () {
+        Swal.fire({ icon: 'success', title: 'Vehicle berhasil disimpan', timer: 2000, showConfirmButton: false });
+    }).fail(function (xhr) {
+        Swal.fire({ icon: 'error', title: 'Gagal', text: firstValidationError(xhr, 'Vehicle gagal disimpan') });
+    });
+});
+
+$(document).on('click', '.save-existing-building', function () {
+    var $row = $(this).closest('[data-existing-building]');
+    var payload = {
+        _token: customerCsrfToken(),
+        id_building: $row.data('existing-building'),
+        id_customer: $('#id_customer').val(),
+        status: $row.data('status'),
+        nama_bangunan: $row.find('[data-field="nama_bangunan"]').val(),
+        alamat: $row.find('[data-field="alamat"]').val()
+    };
+    $.post('/building/update', payload).done(function () {
+        Swal.fire({ icon: 'success', title: 'Building berhasil disimpan', timer: 2000, showConfirmButton: false });
+    }).fail(function (xhr) {
+        Swal.fire({ icon: 'error', title: 'Gagal', text: firstValidationError(xhr, 'Building gagal disimpan') });
+    });
+});
+
+$(document).on('click', '.deactivate-existing-vehicle', function () {
+    if ($(this).prop('disabled')) return;
+    var $btn = $(this);
+    var $row = $btn.closest('[data-existing-vehicle]');
+    Swal.fire({
+        title: 'Nonaktifkan Vehicle',
+        text: 'Vehicle ini akan dinonaktifkan (bukan dihapus permanen). Lanjutkan?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, nonaktifkan',
+        cancelButtonText: 'Batal'
+    }).then(function (result) {
+        if (!result.isConfirmed) return;
+        $.post('/vehicle/destroy', { _token: customerCsrfToken(), id_vehicle: $row.data('existing-vehicle') }).done(function () {
+            Swal.fire({ icon: 'success', title: 'Vehicle dinonaktifkan', timer: 2000, showConfirmButton: false });
+            $row.attr('data-status', 'inactive').data('status', 'inactive');
+            $btn.prop('disabled', true);
+        }).fail(function () {
+            Swal.fire({ icon: 'error', title: 'Gagal menonaktifkan Vehicle' });
+        });
+    });
+});
+
+$(document).on('click', '.deactivate-existing-building', function () {
+    if ($(this).prop('disabled')) return;
+    var $btn = $(this);
+    var $row = $btn.closest('[data-existing-building]');
+    Swal.fire({
+        title: 'Nonaktifkan Building',
+        text: 'Building ini akan dinonaktifkan (bukan dihapus permanen). Lanjutkan?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, nonaktifkan',
+        cancelButtonText: 'Batal'
+    }).then(function (result) {
+        if (!result.isConfirmed) return;
+        $.post('/building/destroy', { _token: customerCsrfToken(), id_building: $row.data('existing-building') }).done(function () {
+            Swal.fire({ icon: 'success', title: 'Building dinonaktifkan', timer: 2000, showConfirmButton: false });
+            $row.attr('data-status', 'inactive').data('status', 'inactive');
+            $btn.prop('disabled', true);
+        }).fail(function () {
+            Swal.fire({ icon: 'error', title: 'Gagal menonaktifkan Building' });
+        });
+    });
+});
 
 function HapusCustomer() {
 

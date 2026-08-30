@@ -14,24 +14,6 @@ class LoginController extends Controller
         return view('login/index');
     }
 
-    // public function auth(Request $request)
-    // {
-
-    //     $infologin = [
-    //         'username' => $request->username,
-    //         'password' => $request->password
-    //     ];
-
-    //     if (Auth::attempt($infologin)) {
-    //         $request->session()->regenerate();
-    //         return redirect()->intended('/');
-    //     } else {
-    //         return back()->with([
-    //             'warning' => 'Wrong username or password',
-    //         ])->withInput();
-    //     }
-    // }
-
     public function auth(Request $request)
     {
         $infologin = [

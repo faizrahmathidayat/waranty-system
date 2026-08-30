@@ -17,7 +17,11 @@ class CustomerFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'nama_customer' => $this->faker->name(),
+            'no_hp' => $this->faker->numerify('08##########'),
+            'email' => $this->faker->unique()->safeEmail(),
+            'alamat' => $this->faker->address(),
+            'status' => 'enabled',
         ];
     }
 }

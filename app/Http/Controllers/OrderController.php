@@ -288,7 +288,7 @@ class OrderController extends Controller
             $lebar = null;
             $totalLuas = $orderType === 'BUILDING' ? round((float) $data['total_luas'], 2) : null;
             $luasPerItem = $orderType === 'BUILDING' ? round($totalLuas / $quantity, 2) : null;
-            $unit = $data['unit'] ?: ($orderType === 'BUILDING' ? 'm2' : 'unit');
+            $unit = ($data['unit'] ?? null) ?: ($orderType === 'BUILDING' ? 'm2' : 'unit');
             // Luas is operational information. Billing is always based on
             // item quantity, including Building orders.
             $gross = round($quantity * $unitPrice, 2);

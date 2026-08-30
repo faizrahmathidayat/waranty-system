@@ -49,11 +49,6 @@ $(function () {
             },
 
             {
-                data: 'masa_garansi_bulan',
-                name: 'masa_garansi_bulan'
-            },
-
-            {
               data: 'status',
               render: function(data) {
                   return data == 'enabled'
@@ -121,13 +116,11 @@ $(document).ready(function () {
         $("#nama_produk").val('');
         $("#brand").val('');
         $("#jenis").val('');
-        $("#masa_garansi_bulan").val('');
         $("#keterangan").val('');
 
         $('#nama_produk').removeClass('is-invalid');
         $('#brand').removeClass('is-invalid');
         $('#jenis').removeClass('is-invalid');
-        $('#masa_garansi_bulan').removeClass('is-invalid');
 
     });
 
@@ -144,7 +137,6 @@ function SimpanProduct() {
     var nama = $('#nama_produk').val();
     var brand = $('#brand').val();
     var jenis = $('#jenis').val();
-    var garansi = $('#masa_garansi_bulan').val();
     var ket = $('#keterangan').val();
 
 
@@ -178,17 +170,6 @@ function SimpanProduct() {
 
     });
 
-    $("#masa_garansi_bulan").keyup(function () {
-
-        if ($(this).val().length > 0) {
-
-            $(this).removeClass('is-invalid');
-
-        }
-
-    });
-
-
     if (nama == '') {
 
         $('#nama_produk').addClass('is-invalid');
@@ -214,16 +195,6 @@ function SimpanProduct() {
         $('#jenis').addClass('is-invalid');
         $('#jenis').focus();
         $('#jenis_notif').html('Jenis tidak boleh kosong');
-
-        return false;
-
-    }
-
-    if (garansi == '') {
-
-        $('#masa_garansi_bulan').addClass('is-invalid');
-        $('#masa_garansi_bulan').focus();
-        $('#masa_garansi_bulan_notif').html('Masa garansi tidak boleh kosong');
 
         return false;
 
@@ -284,7 +255,6 @@ function SimpanProduct() {
                     $('#nama_produk').val('');
                     $('#brand').val('');
                     $('#jenis').val('');
-                    $('#masa_garansi_bulan').val('');
                     $('#keterangan').val('');
 
                     $('#nama_produk').focus();
@@ -349,7 +319,6 @@ $('body').on('click', '.btn-detail-product', function () {
             $('[name="nama_produk_detail"]').val(data.nama_produk);
             $('[name="brand_detail"]').val(data.brand);
             $('[name="jenis_detail"]').val(data.jenis);
-            $('[name="masa_garansi_bulan_detail"]').val(data.masa_garansi_bulan);
             $('[name="id_product_type_detail"]').val(data.id_product_type).trigger('change');
             $('[name="kode_produk_detail"]').val(data.kode_produk);
             $('[name="harga_default_detail"]').val(data.harga_default);
@@ -370,7 +339,6 @@ $('body').on('click', '.btn-detail-product', function () {
             $("#nama_produk_detail").attr("readonly", true);
             $("#brand_detail").attr("readonly", true);
             $("#jenis_detail").attr("readonly", true);
-            $("#masa_garansi_bulan_detail").attr("readonly", true);
             $('#id_product_type_detail, #kode_produk_detail, #harga_default_detail, #is_warranty_eligible_detail').prop('disabled', true);
             $("#keterangan_detail").attr("readonly", true);
 
@@ -396,7 +364,6 @@ $('body').on('click', '#edit_product', function () {
     $("#nama_produk_detail").attr("readonly", false);
     $("#brand_detail").attr("readonly", false);
     $("#jenis_detail").attr("readonly", false);
-    $("#masa_garansi_bulan_detail").attr("readonly", false);
     $('#id_product_type_detail, #kode_produk_detail, #harga_default_detail, #is_warranty_eligible_detail').prop('disabled', false);
     $("#keterangan_detail").attr("readonly", false);
     $('input[name="status"]').prop('disabled', false);
@@ -418,14 +385,12 @@ $('body').on('click', '#close_modal_detail_product', function () {
     $("#nama_produk_detail").attr("readonly", true);
     $("#brand_detail").attr("readonly", true);
     $("#jenis_detail").attr("readonly", true);
-    $("#masa_garansi_bulan_detail").attr("readonly", true);
     $('#id_product_type_detail, #kode_produk_detail, #harga_default_detail, #is_warranty_eligible_detail').prop('disabled', true);
     $("#keterangan_detail").attr("readonly", true);
 
     $('#nama_produk_detail').removeClass('is-invalid');
     $('#brand_detail').removeClass('is-invalid');
     $('#jenis_detail').removeClass('is-invalid');
-    $('#masa_garansi_bulan_detail').removeClass('is-invalid');
 
 });
 
@@ -438,7 +403,6 @@ function UpdateProduct() {
     var nama = $('#nama_produk_detail').val();
     var brand = $('#brand_detail').val();
     var jenis = $('#jenis_detail').val();
-    var garansi = $('#masa_garansi_bulan_detail').val();
     var keterangan = $('#keterangan_detail').val();
 
     $("#nama_produk_detail").on('keyup', function () {
@@ -458,13 +422,6 @@ function UpdateProduct() {
             $(this).removeClass('is-invalid');
         }
     });
-
-    $("#masa_garansi_bulan_detail").on('keyup', function () {
-        if ($(this).val().length > 0) {
-            $(this).removeClass('is-invalid');
-        }
-    });
-
 
     if (nama == '') {
 
@@ -492,16 +449,6 @@ function UpdateProduct() {
 
         return false;
     }
-
-    if (garansi == '') {
-
-        $('#masa_garansi_bulan_detail').addClass('is-invalid');
-        $('#masa_garansi_bulan_detail').focus();
-        $('#masa_garansi_bulan_detail_notif').html('Masa garansi tidak boleh kosong');
-
-        return false;
-    }
-
 
     var formUpdate = $('.form-edit-product').serialize();
 

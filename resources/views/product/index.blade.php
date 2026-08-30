@@ -45,9 +45,7 @@
                                         <th>Jenis</th>
                                         <th>Product Type</th>
 
-                                        <th>Masa Garansi (Bulan)</th>
-
-                                        <th>Keterangan</th>
+                                        <th>Status</th>
 
                                         <th>Action</th>
 

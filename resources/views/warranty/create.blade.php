@@ -19,6 +19,6 @@
             </div>
             <div class="modal-footer bg-light"><button type="reset" class="btn btn-secondary">Reset</button><button type="button" id="btn_save_warranty" class="btn btn-primary" onclick="SimpanWarranty()"><i class="fa fa-save"></i> Simpan</button></div>
         </form>
-        <select id="product-options-template" class="d-none"><option value="">Pilih Product</option>@foreach($products_enabled as $product)<option value="{{ $product->id_product }}" data-garansi="{{ $product->masa_garansi_bulan }}">{{ $product->nama_produk }}</option>@endforeach</select>
+        <select id="product-options-template" class="d-none"><option value="">Pilih Product</option>@foreach($products_enabled as $product)<option value="{{ $product->id_product }}">{{ $product->nama_produk }}</option>@endforeach</select>
     </div></div>
 </div>

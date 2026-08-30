@@ -222,6 +222,7 @@ class WarrantyController extends Controller
             'id_customer' => 'required|exists:customers,id_customer', 'warranty_type' => 'required',
             'tanggal_pasang' => 'required|date', 'items' => 'required|array|min:1',
             'items.*.id_product' => 'required|exists:products,id_product', 'items.*.status' => 'nullable|in:Active,Claim,Expired,Void',
+            'items.*.masa_garansi_bulan' => 'required|integer|min:1|max:600',
         ];
         if (in_array($type->code, ['CAR', 'PPF'])) $rules += ['no_polisi' => 'required', 'merk_mobil' => 'required', 'tipe_mobil' => 'required', 'warna_mobil' => 'required', 'tahun_mobil' => 'required'];
         if ($type->code === 'BUILDING') $rules += ['nama_bangunan' => 'required', 'alamat_bangunan' => 'required', 'items.*.area_pekerjaan' => 'required', 'items.*.panjang' => 'required|numeric|gt:0', 'items.*.lebar' => 'required|numeric|gt:0', 'items.*.jumlah' => 'required|integer|gt:0'];
@@ -238,8 +239,7 @@ class WarrantyController extends Controller
             $firstProduct = Product::findOrFail($items[0]['id_product']);
             $expiries = [];
             foreach ($items as $item) {
-                $product = Product::findOrFail($item['id_product']);
-                $expiries[] = date('Y-m-d', strtotime($request->tanggal_pasang . ' +' . $product->masa_garansi_bulan . ' months'));
+                $expiries[] = date('Y-m-d', strtotime($request->tanggal_pasang . ' +' . $item['masa_garansi_bulan'] . ' months'));
             }
             $kode = $this->generateKodeWarranty();
             $header = [
@@ -291,9 +291,9 @@ class WarrantyController extends Controller
             'customer:id_customer,nama_customer',
             'warrantyType:id,code,name',
             'user:user_id,name',
-            'vehicle.items.product:id_product,nama_produk,masa_garansi_bulan',
-            'building.items.product:id_product,nama_produk,masa_garansi_bulan',
-            'ppf.items.product:id_product,nama_produk,masa_garansi_bulan',
+            'vehicle.items.product:id_product,nama_produk',
+            'building.items.product:id_product,nama_produk',
+            'ppf.items.product:id_product,nama_produk',
             'assetVehicle:id_vehicle,no_polisi,merk,model,warna,tahun',
             'assetBuilding:id_building,nama_bangunan,alamat',
             'warrantyItems.product:id_product,nama_produk',
@@ -341,7 +341,7 @@ class WarrantyController extends Controller
         if ($warranty->status === 'Void') return response()->json(['message' => 'Warranty Void tidak dapat diubah.'], 422);
 
         $type = optional($warranty->warrantyType)->code ?: 'CAR';
-        $rules = ['id_customer_detail' => 'required|exists:customers,id_customer', 'tanggal_pasang_detail' => 'required|date', 'items' => 'required|array|min:1', 'items.*.id_product' => 'required|exists:products,id_product', 'items.*.status' => 'nullable|in:Active,Claim'];
+        $rules = ['id_customer_detail' => 'required|exists:customers,id_customer', 'tanggal_pasang_detail' => 'required|date', 'items' => 'required|array|min:1', 'items.*.id_product' => 'required|exists:products,id_product', 'items.*.status' => 'nullable|in:Active,Claim', 'items.*.masa_garansi_bulan' => 'required|integer|min:1|max:600'];
         if (in_array($type, ['CAR', 'PPF'])) $rules += ['no_polisi_detail' => 'required', 'merk_mobil_detail' => 'required', 'tipe_mobil_detail' => 'required', 'warna_mobil_detail' => 'required', 'tahun_mobil_detail' => 'required'];
         if ($type === 'BUILDING') $rules += ['nama_bangunan_detail' => 'required', 'alamat_bangunan_detail' => 'required', 'items.*.area_pekerjaan' => 'required', 'items.*.panjang' => 'required|numeric|gt:0', 'items.*.lebar' => 'required|numeric|gt:0', 'items.*.jumlah' => 'required|integer|gt:0'];
         if ($type === 'CAR') $rules['items.*.posisi_kaca'] = 'required';
@@ -357,8 +357,7 @@ class WarrantyController extends Controller
         DB::transaction(function () use ($request, $validated, $warranty, $type) {
             $expiries = [];
             foreach ($validated['items'] as $item) {
-                $product = Product::findOrFail($item['id_product']);
-                $expiries[] = date('Y-m-d', strtotime($request->tanggal_pasang_detail . ' +' . $product->masa_garansi_bulan . ' months'));
+                $expiries[] = date('Y-m-d', strtotime($request->tanggal_pasang_detail . ' +' . $item['masa_garansi_bulan'] . ' months'));
             }
             $header = ['id_customer' => $validated['id_customer_detail'], 'id_product' => $validated['items'][0]['id_product'], 'no_invoice' => $request->no_invoice_detail, 'tanggal_pasang' => $request->tanggal_pasang_detail, 'tanggal_expired' => max($expiries), 'installer' => $request->installer_detail, 'catatan' => $request->catatan_detail];
             if (in_array($type, ['CAR', 'PPF'])) $header += ['no_polisi' => strtoupper($request->no_polisi_detail), 'merk_mobil' => $request->merk_mobil_detail, 'tipe_mobil' => $request->tipe_mobil_detail, 'warna_mobil' => $request->warna_mobil_detail, 'tahun_mobil' => $request->tahun_mobil_detail];

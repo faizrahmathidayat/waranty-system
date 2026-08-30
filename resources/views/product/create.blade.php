@@ -98,29 +98,6 @@
                         <tr>
 
                             <td style="font-size:15px;font-weight:bold;">
-                                Masa Garansi (Bulan)
-                            </td>
-
-                            <td>
-
-                                <input type="number"
-                                    id="masa_garansi_bulan"
-                                    name="masa_garansi_bulan"
-                                    class="form-control"
-                                    autocomplete="off">
-
-                                <div id="masa_garansi_bulan_notif"
-                                    class="invalid-feedback">
-
-                                </div>
-
-                            </td>
-
-                        </tr>
-
-                        <tr>
-
-                            <td style="font-size:15px;font-weight:bold;">
                                 Product Type
                             </td>
                             <td><select id="id_product_type" name="id_product_type" class="form-control select2" style="width:100%"><option value="">-- Pilih Product Type --</option>@foreach($productTypes as $type)<option value="{{ $type->id_product_type }}">{{ $type->name }}</option>@endforeach</select></td>

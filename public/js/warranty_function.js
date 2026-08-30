@@ -1090,16 +1090,16 @@ function ShowQRCode() {
         var type = $('#warranty_type').val();
         var field = type === 'CAR' ? '<input class="form-control" name="items[' + index + '][posisi_kaca]" placeholder="Posisi Kaca" required>' : '<input class="form-control" name="items[' + index + '][area_pekerjaan]" placeholder="Area Pekerjaan" required>';
         var dimensions = type === 'BUILDING' ? '<div class="col-md-2"><input class="form-control building-size" type="number" min="0.01" step="0.01" name="items[' + index + '][panjang]" placeholder="Panjang (m)" required></div><div class="col-md-2"><input class="form-control building-size" type="number" min="0.01" step="0.01" name="items[' + index + '][lebar]" placeholder="Lebar (m)" required></div><div class="col-md-1"><input class="form-control building-size" type="number" min="1" name="items[' + index + '][jumlah]" placeholder="Jml" required></div><div class="col-md-2"><input class="form-control luas-per-item" readonly placeholder="Luas/item m²"><input type="hidden" class="total-luas"></div><div class="col-md-2"><input class="form-control total-luas-view" readonly placeholder="Total m²"></div>' : '';
-        return '<div class="card item-row mb-2"><div class="card-body py-2"><div class="row align-items-center"><div class="col-md-2">' + field + '</div><div class="col-md-3"><select class="form-control item-product" name="items[' + index + '][id_product]" required>' + productOptions() + '</select></div>' + dimensions + '<div class="col-md-2"><input class="form-control item-expired" readonly placeholder="Tanggal Expired"></div><div class="col-md-1"><select class="form-control" name="items[' + index + '][status]"><option value="Active">Active</option><option value="Claim">Claim</option></select></div><div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-item"><i class="fa fa-times"></i></button></div></div></div></div>';
+        return '<div class="card item-row mb-2"><div class="card-body py-2"><div class="row align-items-center"><div class="col-md-2">' + field + '</div><div class="col-md-3"><select class="form-control item-product" name="items[' + index + '][id_product]" required>' + productOptions() + '</select></div>' + dimensions + '<div class="col-md-2"><input type="number" min="1" step="1" class="form-control item-garansi" name="items[' + index + '][masa_garansi_bulan]" placeholder="Masa Garansi (Bulan)" required></div><div class="col-md-2"><input class="form-control item-expired" readonly placeholder="Tanggal Expired"></div><div class="col-md-1"><select class="form-control" name="items[' + index + '][status]"><option value="Active">Active</option><option value="Claim">Claim</option></select></div><div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-item"><i class="fa fa-times"></i></button></div></div></div></div>';
     }
     function addItem() { var i = $('#warranty-items .item-row').length; $('#warranty-items').append(itemHtml(i)); }
-    function expiry(row) { var date = $('#tanggal_pasang').val(), months = row.find('.item-product option:selected').data('garansi'); if (!date || months === undefined) return row.find('.item-expired').val(''); var d = new Date(date + 'T00:00:00'); d.setMonth(d.getMonth() + parseInt(months, 10)); row.find('.item-expired').val(d.toISOString().slice(0, 10)); }
+    function expiry(row) { var date = $('#tanggal_pasang').val(), months = parseInt(row.find('.item-garansi').val(), 10); if (!date || !months || months < 1) return row.find('.item-expired').val(''); var d = new Date(date + 'T00:00:00'); d.setMonth(d.getMonth() + months); var pad = function (n) { return String(n).padStart(2, '0'); }; row.find('.item-expired').val(d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())); }
     function area(row) { var p = parseFloat(row.find('[name$="[panjang]"]').val()) || 0, l = parseFloat(row.find('[name$="[lebar]"]').val()) || 0, q = parseInt(row.find('[name$="[jumlah]"]').val(), 10) || 0; row.find('.luas-per-item').val((p * l).toFixed(2)); row.find('.total-luas-view').val((p * l * q).toFixed(2)); }
     $('#warranty_type').on('change', function () { var type = this.value; $('.type-fields').addClass('d-none'); if (type === 'BUILDING') $('#building-fields').removeClass('d-none'); if (type === 'CAR' || type === 'PPF') $('#vehicle-fields').removeClass('d-none'); $('#warranty-items').empty(); if (type) addItem(); });
     $('#modal_tambah_warranty').on('shown.bs.modal', function () { $('#warranty_type').val(''); $('.type-fields').addClass('d-none'); $('#warranty-items').empty(); });
     $('#add-warranty-item').on('click', function () { if ($('#warranty_type').val()) addItem(); });
     $(document).on('click', '.remove-item', function () { $(this).closest('.item-row').remove(); });
-    $(document).on('change', '.item-product, #tanggal_pasang', function () { $('#warranty-items .item-row').each(function () { expiry($(this)); }); });
+    $(document).on('change input', '.item-product, .item-garansi, #tanggal_pasang', function () { $('#warranty-items .item-row').each(function () { expiry($(this)); }); });
     $(document).on('input', '.building-size', function () { area($(this).closest('.item-row')); });
 })();
 
@@ -1130,7 +1130,7 @@ $('#filter_product, #filter_status').on('change', function () {
     function displayDate(value) { if (!value) return '-'; var date = String(value).slice(0, 10).split('-'); return date.length === 3 ? date[2] + '/' + date[1] + '/' + date[0] : esc(value); }
     function productOptions(selected) {
         return ($('#product-options-template option').map(function () {
-            return '<option value="' + this.value + '" data-garansi="' + ($(this).data('garansi') || '') + '"' + (String(this.value) === String(selected) ? ' selected' : '') + '>' + esc($(this).text()) + '</option>';
+            return '<option value="' + this.value + '"' + (String(this.value) === String(selected) ? ' selected' : '') + '>' + esc($(this).text()) + '</option>';
         }).get().join(''));
     }
     function statusBadge(status) {
@@ -1138,9 +1138,11 @@ $('#filter_product, #filter_status').on('change', function () {
         return '<span class="badge badge-' + cls + '">' + esc(String(status).toUpperCase()) + '</span>';
     }
     function detailExpiry(row) {
-        var date = $('#tanggal_pasang_detail').val(), months = row.find('.detail-product option:selected').data('garansi');
-        if (!date || months === undefined || months === '') return '';
-        var d = new Date(date + 'T00:00:00'); d.setMonth(d.getMonth() + parseInt(months, 10)); return d.toISOString().slice(0, 10);
+        var date = $('#tanggal_pasang_detail').val(), months = parseInt(row.find('.detail-garansi').val(), 10);
+        if (!date || !months || months < 1) return '';
+        var d = new Date(date + 'T00:00:00'); d.setMonth(d.getMonth() + months);
+        var pad = function (n) { return String(n).padStart(2, '0'); };
+        return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
     }
     function calculateDetailArea(row) {
         var p = parseFloat(row.find('[name$="[panjang]"]').val()) || 0, l = parseFloat(row.find('[name$="[lebar]"]').val()) || 0, q = parseInt(row.find('[name$="[jumlah]"]').val(), 10) || 0;
@@ -1151,6 +1153,7 @@ $('#filter_product, #filter_status').on('change', function () {
         var prefix = 'items[' + index + ']';
         var row = '<tr class="detail-item-row"><td><span class="detail-read">' + esc(item[field]) + '</span><input class="form-control form-control-sm detail-editable" name="' + prefix + '[' + field + ']" value="' + esc(item[field]) + '" placeholder="' + label + '"></td>';
         row += '<td><span class="detail-read">' + esc(item.product ? item.product.nama_produk : (item.product_name_snapshot || '')) + '</span><select class="form-control form-control-sm select2 detail-product detail-editable" name="' + prefix + '[id_product]">' + productOptions(item.id_product) + '</select></td>';
+        row += '<td><input class="form-control form-control-sm detail-editable detail-garansi" type="number" min="1" step="1" name="' + prefix + '[masa_garansi_bulan]" placeholder="Bulan"></td>';
         if (type === 'BUILDING') row += '<td><span class="detail-read">' + esc(item.panjang) + ' × ' + esc(item.lebar) + ' m</span><div class="detail-editable"><input class="form-control form-control-sm mb-1 detail-size" type="number" min="0.01" step="0.01" name="' + prefix + '[panjang]" value="' + esc(item.panjang) + '" placeholder="Panjang"><input class="form-control form-control-sm detail-size" type="number" min="0.01" step="0.01" name="' + prefix + '[lebar]" value="' + esc(item.lebar) + '" placeholder="Lebar"></div></td><td><span class="detail-read">' + esc(item.jumlah) + '</span><input class="form-control form-control-sm detail-editable detail-size" type="number" min="1" name="' + prefix + '[jumlah]" value="' + esc(item.jumlah) + '"></td><td class="detail-luas">' + esc(item.total_luas) + ' m²</td>';
         else row += '<td>' + displayDate(item.tanggal_pasang) + '</td>';
         row += '<td class="detail-expired">' + displayDate(item.tanggal_expired) + '</td><td>' + statusBadge(item.status) + '<select class="form-control form-control-sm mt-1 detail-editable" name="' + prefix + '[status]"><option value="Active"' + (item.status === 'Active' ? ' selected' : '') + '>Active</option><option value="Claim"' + (item.status === 'Claim' ? ' selected' : '') + '>Claim</option></select></td><td><button type="button" class="btn btn-sm btn-outline-danger remove-detail-item detail-edit-only"><i class="fa fa-times"></i></button></td></tr>';
@@ -1158,7 +1161,7 @@ $('#filter_product, #filter_status').on('change', function () {
     }
     function renderItems() {
         var type = detailData.warranty_type;
-        $('#detail-items-head').html(type === 'BUILDING' ? '<tr><th>Area</th><th>Product</th><th>Ukuran</th><th>Qty</th><th>Total Luas</th><th>Expired</th><th>Status</th><th></th></tr>' : '<tr><th>' + (type === 'CAR' ? 'Posisi Kaca' : 'Area PPF') + '</th><th>Product</th><th>Tanggal Pasang</th><th>Expired</th><th>Status</th><th></th></tr>');
+        $('#detail-items-head').html(type === 'BUILDING' ? '<tr><th>Area</th><th>Product</th><th>Garansi (Bulan)</th><th>Ukuran</th><th>Qty</th><th>Total Luas</th><th>Expired</th><th>Status</th><th></th></tr>' : '<tr><th>' + (type === 'CAR' ? 'Posisi Kaca' : 'Area PPF') + '</th><th>Product</th><th>Garansi (Bulan)</th><th>Tanggal Pasang</th><th>Expired</th><th>Status</th><th></th></tr>');
         $('#detail-items').html(detailData.items.map(itemRow).join(''));
         $('#detail-items .detail-product').select2({ width: '100%' });
         setEditMode(editing);
@@ -1195,7 +1198,7 @@ $('#filter_product, #filter_status').on('change', function () {
     $('#modal_detail_warranty').off('hidden.bs.modal').on('hidden.bs.modal', function () { detailData = null; editing = false; });
     $('#add-detail-item').on('click', function () { var item = detailData.warranty_type === 'CAR' ? { posisi_kaca: '', id_product: '', tanggal_pasang: $('#tanggal_pasang_detail').val(), tanggal_expired: '', status: 'Active' } : { area_pekerjaan: '', id_product: '', tanggal_pasang: $('#tanggal_pasang_detail').val(), tanggal_expired: '', status: 'Active' }; if (detailData.warranty_type === 'BUILDING') $.extend(item, { panjang: '', lebar: '', jumlah: '', total_luas: '0.00' }); detailData.items.push(item); renderItems(); });
     $(document).on('click', '.remove-detail-item', function () { var index = $(this).closest('tr').index(); detailData.items.splice(index, 1); renderItems(); });
-    $(document).on('change', '.detail-product, #tanggal_pasang_detail', function () { $('#detail-items tr').each(function () { $(this).find('.detail-expired').text(detailExpiry($(this))); }); });
+    $(document).on('change input', '.detail-product, .detail-garansi, #tanggal_pasang_detail', function () { $('#detail-items tr').each(function () { var value = detailExpiry($(this)); if (value) $(this).find('.detail-expired').text(displayDate(value)); }); });
     $(document).on('input', '.detail-size', function () { calculateDetailArea($(this).closest('tr')); });
     window.UpdateWarranty = function () { var form = $('#form-edit-warranty'); if (!form[0].checkValidity()) { form[0].reportValidity(); return; } if (!$('#detail-items tr').length) { Swal.fire('Peringatan', 'Minimal satu item warranty wajib diisi.', 'warning'); return; } $('#btn_update_warranty').prop('disabled', true).text('Menyimpan...'); $.post('/warranty/update', form.serialize()).done(function () { $('#modal_detail_warranty').modal('hide'); $('#tabel_warranty').DataTable().ajax.reload(null, false); Swal.fire('Berhasil', 'Warranty berhasil diupdate.', 'success'); }).fail(function (xhr) { Swal.fire('Gagal', xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Warranty gagal diupdate.', 'error'); }).always(function () { $('#btn_update_warranty').prop('disabled', false).html('<i class="fas fa-save"></i> Update'); }); };
 })();

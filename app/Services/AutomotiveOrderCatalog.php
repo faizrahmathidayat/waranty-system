@@ -27,12 +27,16 @@ class AutomotiveOrderCatalog
 
     public static function areaOptions(string $treatmentCode): array
     {
-        return match ($treatmentCode) {
-            'KACA_FILM' => ['Kaca Depan', 'Samping Kanan Depan', 'Samping Kiri Depan', 'Samping Kanan Belakang', 'Samping Kiri Belakang', 'Kaca Belakang', 'Sunroof', 'Lainnya'],
-            'PPF' => ['Full Body', 'Hood', 'Roof', 'Front Bumper', 'Rear Bumper', 'Door', 'Fender', 'Mirror', 'Lainnya'],
-            'COATING' => ['Full Body', 'Exterior', 'Interior', 'Glass', 'Wheel', 'Lainnya'],
-            default => [],
-        };
+        switch ($treatmentCode) {
+            case 'KACA_FILM':
+                return ['Kaca Depan', 'Samping Kanan Depan', 'Samping Kiri Depan', 'Samping Kanan Belakang', 'Samping Kiri Belakang', 'Kaca Belakang', 'Sunroof', 'Lainnya'];
+            case 'PPF':
+                return ['Full Body', 'Hood', 'Roof', 'Front Bumper', 'Rear Bumper', 'Door', 'Fender', 'Mirror', 'Lainnya'];
+            case 'COATING':
+                return ['Full Body', 'Exterior', 'Interior', 'Glass', 'Wheel', 'Lainnya'];
+            default:
+                return [];
+        }
     }
 
     public static function requiresArea(string $treatmentCode): bool

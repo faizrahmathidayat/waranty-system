@@ -101,6 +101,7 @@ Route::get('/warranty/show/{id_warranty}', [WarrantyController::class, 'show']);
 Route::post('/warranty/update', [WarrantyController::class, 'update']);
 Route::post('/warranty/destroy', [WarrantyController::class, 'destroy']);
 Route::get('/warranty/{kode}', [WarrantyController::class, 'digitalWarranty'])->name('warranty.digital');
+Route::get('/warranty/{kode}/check', [WarrantyController::class, 'checkStatus'])->name('warranty.check');
 Route::post('/warranty/{kode}/verify-pin', [WarrantyController::class, 'verifyDigitalPin'])->name('warranty.verify-pin');
 Route::post('/warranty/void', [WarrantyController::class, 'void'])->name('warranty.void');
 //download warranty pdf

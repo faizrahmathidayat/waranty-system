@@ -11,7 +11,7 @@ class EnsureSessionAuthenticated
     public function handle(Request $request, Closure $next)
     {
         // Login and public digital-warranty PIN verification must remain reachable.
-        if ($request->is('login') || $request->is('login/*') || $request->routeIs('warranty.digital', 'warranty.verify-pin')) {
+        if ($request->is('login') || $request->is('login/*') || $request->routeIs('warranty.digital', 'warranty.verify-pin', 'warranty.check')) {
             return $next($request);
         }
 

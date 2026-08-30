@@ -430,6 +430,16 @@ class WarrantyController extends Controller
         return view('warranty.digital', compact('warranty'));
     }
 
+    public function checkStatus($kode)
+    {
+        $warranty = Warranty::where('kode_warranty', strtoupper(trim($kode)))
+            ->where('status', '!=', 'Void')
+            ->first();
+
+        return response()->json(['valid' => (bool) $warranty])
+            ->header('Access-Control-Allow-Origin', '*');
+    }
+
     public function verifyDigitalPin(Request $request, $kode)
     {
         $request->validate(['pin_warranty' => 'required|digits:6']);

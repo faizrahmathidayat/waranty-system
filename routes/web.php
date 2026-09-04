@@ -103,6 +103,11 @@ Route::post('/warranty/destroy', [WarrantyController::class, 'destroy']);
 Route::get('/warranty/{kode}', [WarrantyController::class, 'digitalWarranty'])->name('warranty.digital');
 Route::get('/warranty/{kode}/check', [WarrantyController::class, 'checkStatus'])->name('warranty.check');
 Route::post('/warranty/{kode}/verify-pin', [WarrantyController::class, 'verifyDigitalPin'])->name('warranty.verify-pin');
+// A GET here means someone opened the verify-pin URL directly (refresh, back button,
+// shared link) instead of submitting the form — send them back to the PIN page.
+Route::get('/warranty/{kode}/verify-pin', function (string $kode) {
+    return redirect()->route('warranty.digital', $kode);
+})->name('warranty.verify-pin');
 Route::post('/warranty/void', [WarrantyController::class, 'void'])->name('warranty.void');
 //download warranty pdf
 Route::get('/warranty/{kode}/pdf', [WarrantyController::class, 'downloadPdf'])->name('warranty.pdf');

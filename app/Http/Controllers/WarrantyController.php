@@ -423,11 +423,7 @@ class WarrantyController extends Controller
             abort(404);
         }
 
-        if (session('digital_warranty_verified.' . $warranty->id_warranty) !== true) {
-            return view('warranty.pin', compact('warranty'));
-        }
-
-        return view('warranty.digital', compact('warranty'));
+        return view('warranty.pin', compact('warranty'));
     }
 
     public function checkStatus($kode)
@@ -443,12 +439,19 @@ class WarrantyController extends Controller
     public function verifyDigitalPin(Request $request, $kode)
     {
         $request->validate(['pin_warranty' => 'required|digits:6']);
-        $warranty = Warranty::where('kode_warranty', $kode)->where('status', '!=', 'Void')->firstOrFail();
+
+        $warranty = Warranty::with(['customer', 'product', 'warrantyType', 'warrantyItems', 'assetVehicle', 'assetBuilding', 'vehicle.items.product', 'building.items.product', 'ppf.items.product'])
+            ->where('kode_warranty', $kode)
+            ->where('status', '!=', 'Void')
+            ->firstOrFail();
+
         if (!hash_equals((string) $warranty->pin_warranty, (string) $request->pin_warranty)) {
             return back()->withErrors(['pin_warranty' => 'PIN warranty tidak sesuai.'])->withInput();
         }
-        $request->session()->put('digital_warranty_verified.' . $warranty->id_warranty, true);
-        return redirect()->route('warranty.digital', $kode);
+
+        // No session flag is stored — the PIN must be re-entered on every visit
+        // to this URL, so a shared/bookmarked link never bypasses verification.
+        return view('warranty.digital', compact('warranty'));
     }
 
     public function downloadPdf($kode)

@@ -20,6 +20,7 @@ use App\Http\Controllers\ServiceCompletionController;
 use App\Http\Controllers\TechnicianController;
 use App\Http\Controllers\Cms\ArticleController;
 use App\Http\Controllers\Cms\CatalogController;
+use App\Http\Controllers\Cms\PortfolioController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -175,4 +176,17 @@ Route::prefix('cms/catalog')->name('cms.catalog.')->group(function () {
     Route::put('/{catalogItem}', [CatalogController::class, 'update'])->name('update');
     Route::delete('/{catalogItem}', [CatalogController::class, 'destroy'])->name('destroy');
     Route::delete('/media/{media}', [CatalogController::class, 'destroyMedia'])->name('media.destroy');
+});
+
+// CMS - Portofolio
+Route::prefix('cms/portfolio')->name('cms.portfolio.')->group(function () {
+    Route::get('/', [PortfolioController::class, 'index'])->name('index');
+    Route::get('/data', [PortfolioController::class, 'data'])->name('data');
+    Route::get('/create', [PortfolioController::class, 'index'])->name('create');
+    Route::get('/{portfolioItem}/edit', [PortfolioController::class, 'index'])->name('edit');
+    Route::get('/{portfolioItem}', [PortfolioController::class, 'show'])->name('show');
+    Route::post('/', [PortfolioController::class, 'store'])->name('store');
+    Route::put('/{portfolioItem}', [PortfolioController::class, 'update'])->name('update');
+    Route::delete('/{portfolioItem}', [PortfolioController::class, 'destroy'])->name('destroy');
+    Route::delete('/media/{media}', [PortfolioController::class, 'destroyMedia'])->name('media.destroy');
 });

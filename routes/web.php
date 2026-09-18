@@ -19,6 +19,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ServiceCompletionController;
 use App\Http\Controllers\TechnicianController;
 use App\Http\Controllers\Cms\ArticleController;
+use App\Http\Controllers\Cms\CatalogController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -161,4 +162,17 @@ Route::prefix('cms/articles')->name('cms.articles.')->group(function () {
     Route::put('/{article}', [ArticleController::class, 'update'])->name('update');
     Route::delete('/{article}', [ArticleController::class, 'destroy'])->name('destroy');
     Route::delete('/media/{media}', [ArticleController::class, 'destroyMedia'])->name('media.destroy');
+});
+
+// CMS - Katalog
+Route::prefix('cms/catalog')->name('cms.catalog.')->group(function () {
+    Route::get('/', [CatalogController::class, 'index'])->name('index');
+    Route::get('/data', [CatalogController::class, 'data'])->name('data');
+    Route::get('/create', [CatalogController::class, 'index'])->name('create');
+    Route::get('/{catalogItem}/edit', [CatalogController::class, 'index'])->name('edit');
+    Route::get('/{catalogItem}', [CatalogController::class, 'show'])->name('show');
+    Route::post('/', [CatalogController::class, 'store'])->name('store');
+    Route::put('/{catalogItem}', [CatalogController::class, 'update'])->name('update');
+    Route::delete('/{catalogItem}', [CatalogController::class, 'destroy'])->name('destroy');
+    Route::delete('/media/{media}', [CatalogController::class, 'destroyMedia'])->name('media.destroy');
 });

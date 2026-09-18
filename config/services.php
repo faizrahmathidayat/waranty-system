@@ -31,4 +31,8 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'cms' => [
+        'api_key' => env('CMS_API_KEY'),
+    ],
+
 ];

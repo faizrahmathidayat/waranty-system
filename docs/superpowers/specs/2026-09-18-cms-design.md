@@ -119,7 +119,8 @@ Pola identik di kedua situs (menyesuaikan tema masing-masing):
   - `compro-2`: route `/portfolio` + link nav **baru sepenuhnya** (belum pernah ada).
   - Detail portofolio: judul, location (kalau ada), body, galeri gambar.
 - **Galeri/slider di halaman detail**: lightbox buatan sendiri (vanilla JS/CSS) — strip thumbnail + gambar utama + tombol prev/next + klik untuk perbesar (overlay fullscreen) — dibangun mengikuti pola hero-slider yang sudah ada di masing-masing situs (tanpa dependency JS baru di sisi publik), supaya konsisten dengan codebase yang sudah ada.
-- **Resilience**: pemanggilan API dibungkus try/catch; kalau `dashboard` tidak bisa diakses/timeout, section terkait tampil sebagai empty-state ("Konten belum tersedia") alih-alih meng-crash halaman. Response API di-cache ringan (mis. `Cache::remember` 5 menit) untuk mengurangi beban ke `dashboard` dan mempercepat load.
+- **Resilience**: pemanggilan API dibungkus try/catch; kalau `dashboard` tidak bisa diakses/timeout, section terkait tampil sebagai empty-state ("Konten belum tersedia") alih-alih meng-crash halaman.
+- **Tanpa caching** (keputusan user, 2026-09-19, membatalkan draf awal yang sempat memakai `Cache::remember` 5 menit di `compro-1`): setiap request ke halaman CMS consumer memanggil `dashboard` secara langsung, supaya konten yang baru di-publish/di-edit di admin langsung tampak di situs publik tanpa delay. Trade-off yang disadari: setiap kunjungan ke halaman ber-CMS membebani `dashboard` dengan satu API call; kalau traffic publik nanti jadi masalah performa, opsi seperti cache berdurasi pendek atau tombol "purge cache" manual di admin bisa dipertimbangkan lagi saat itu — bukan sekarang.
 
 ## Urutan Implementasi (fase, lewat satu plan)
 

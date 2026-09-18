@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Article;
+use App\Models\CatalogItem;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
 
@@ -26,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
         // their own entry here in Phase 2/3 — same array, one line each.
         Relation::morphMap([
             'article' => Article::class,
+            'catalog' => CatalogItem::class,
         ]);
     }
 }

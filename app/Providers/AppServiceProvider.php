@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Article;
 use App\Models\CatalogItem;
+use App\Models\PortfolioItem;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
 
@@ -28,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
         Relation::morphMap([
             'article' => Article::class,
             'catalog' => CatalogItem::class,
+            'portfolio' => PortfolioItem::class,
         ]);
     }
 }

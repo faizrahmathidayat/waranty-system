@@ -114,6 +114,9 @@
                 <li class="nav-item"><a href="/cms/catalog" class="nav-link {{ Request::is('cms/catalog*') ? 'active' : '' }}"><i class="nav-icon fas fa-boxes"></i>
                         <p>Katalog</p>
                     </a></li>
+                <li class="nav-item"><a href="/cms/portfolio" class="nav-link {{ Request::is('cms/portfolio*') ? 'active' : '' }}"><i class="nav-icon fas fa-images"></i>
+                        <p>Portofolio</p>
+                    </a></li>
 
                 <li class="nav-header">REPORTS</li>
                 <li class="nav-item">

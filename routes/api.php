@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\Api\CatalogController;
+use App\Http\Controllers\Api\PortfolioController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,4 +26,6 @@ Route::middleware('cms.api_key')->prefix('cms')->group(function () {
     Route::get('/articles/{slug}', [ArticleController::class, 'show']);
     Route::get('/catalog', [CatalogController::class, 'index']);
     Route::get('/catalog/{slug}', [CatalogController::class, 'show']);
+    Route::get('/portfolio', [PortfolioController::class, 'index']);
+    Route::get('/portfolio/{slug}', [PortfolioController::class, 'show']);
 });

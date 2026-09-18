@@ -18,6 +18,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ServiceCompletionController;
 use App\Http\Controllers\TechnicianController;
+use App\Http\Controllers\Cms\ArticleController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -148,3 +149,16 @@ Route::get('/laporan-invoice', [LaporanController::class, 'invoice'])->name('lap
 Route::get('/laporan-invoice/data', [LaporanController::class, 'invoiceData'])->name('laporan.invoice.data');
 Route::get('/laporan-invoice/export-excel', [LaporanController::class, 'invoiceExportExcel'])->name('laporan.invoice.export.excel');
 Route::get('/laporan-invoice/export-pdf', [LaporanController::class, 'invoiceExportPdf'])->name('laporan.invoice.export.pdf');
+
+// CMS - Artikel
+Route::prefix('cms/articles')->name('cms.articles.')->group(function () {
+    Route::get('/', [ArticleController::class, 'index'])->name('index');
+    Route::get('/data', [ArticleController::class, 'data'])->name('data');
+    Route::get('/create', [ArticleController::class, 'index'])->name('create');
+    Route::get('/{article}/edit', [ArticleController::class, 'index'])->name('edit');
+    Route::get('/{article}', [ArticleController::class, 'show'])->name('show');
+    Route::post('/', [ArticleController::class, 'store'])->name('store');
+    Route::put('/{article}', [ArticleController::class, 'update'])->name('update');
+    Route::delete('/{article}', [ArticleController::class, 'destroy'])->name('destroy');
+    Route::delete('/media/{media}', [ArticleController::class, 'destroyMedia'])->name('media.destroy');
+});

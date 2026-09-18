@@ -38,6 +38,8 @@
     <!-- Theme style -->
     <link rel="stylesheet" href="dist/css/adminlte.min.css">
 
+    @stack('styles')
+
 
     <!-- <link rel="stylesheet" type="text/css" href="tabel.css"> -->
 
@@ -181,6 +183,8 @@
             if (xhr.status === 401) window.location.href = '/login';
         });
     </script>
+
+    @stack('scripts')
 
 </body>
 

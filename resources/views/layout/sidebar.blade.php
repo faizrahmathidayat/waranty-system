@@ -107,6 +107,11 @@
                     </a>
                 </li>
 
+                <li class="nav-header">CMS</li>
+                <li class="nav-item"><a href="/cms/articles" class="nav-link {{ Request::is('cms/articles*') ? 'active' : '' }}"><i class="nav-icon fas fa-newspaper"></i>
+                        <p>Artikel</p>
+                    </a></li>
+
                 <li class="nav-header">REPORTS</li>
                 <li class="nav-item">
                     <a href="/laporan-mobil" class="nav-link {{ Request::url() == url('/laporan-mobil') ? 'active' : '' }}">

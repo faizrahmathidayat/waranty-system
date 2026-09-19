@@ -1,4 +1,6 @@
 $(function () {
+    $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+
     var routes = window.CMS_CATALOG_ROUTES;
     var isFormMode = window.CMS_CATALOG_IS_CREATE || !!window.CMS_CATALOG_EDIT_ID;
     var quill = null;

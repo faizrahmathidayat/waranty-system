@@ -10,6 +10,11 @@
     .cms-gallery-item img { width: 120px; height: 90px; object-fit: cover; border-radius: 4px; border: 1px solid #dee2e6; }
     .cms-gallery-item .remove-image { position: absolute; top: -8px; right: -8px; background: #dc3545; color: #fff; border-radius: 50%; width: 22px; height: 22px; line-height: 22px; text-align: center; cursor: pointer; font-size: 12px; }
     #quill-body-editor { background: #fff; min-height: 260px; }
+    .cms-tag-input { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 8px; border: 1px solid #ced4da; border-radius: .25rem; background: #fff; cursor: text; }
+    .cms-tag-input input { flex: 1 0 140px; min-width: 140px; border: 0; outline: 0; padding: 2px 0; }
+    .cms-tag-chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 4px 2px 10px; border-radius: 14px; background: #e9ecef; font-size: 13px; }
+    .cms-tag-chip .remove-tag { cursor: pointer; width: 18px; height: 18px; line-height: 18px; border-radius: 50%; text-align: center; color: #6c757d; }
+    .cms-tag-chip .remove-tag:hover { background: #dc3545; color: #fff; }
     .cms-cover-thumb { width: 50px; height: 38px; object-fit: cover; border-radius: 3px; }
 </style>
 @endpush
@@ -78,6 +83,13 @@
                     <div class="form-group">
                         <label>Kategori (opsional)</label>
                         <input type="text" class="form-control" id="category" name="category">
+                    </div>
+                    <div class="form-group">
+                        <label>Tag (opsional)</label>
+                        <div id="cms-tag-box" class="cms-tag-input">
+                            <input type="text" id="tag-input" maxlength="30" placeholder="Ketik tag lalu tekan Enter atau koma" autocomplete="off">
+                        </div>
+                        <small class="form-text text-muted">Maksimal 10 tag, 30 karakter per tag.</small>
                     </div>
                     <div class="form-group">
                         <label>Tampilkan di situs</label><br>

@@ -68,6 +68,17 @@ class ArticleApiTest extends TestCase
         $response->assertJsonCount(1, 'data.media');
     }
 
+    public function test_show_returns_tags_and_an_empty_array_when_there_are_none(): void
+    {
+        Article::create(['title' => 'Bertag', 'slug' => 'bertag', 'body' => 'x', 'status' => 'published', 'published_at' => now(), 'show_on_glosspro' => true, 'tags' => ['Coating', 'PPF']]);
+        Article::create(['title' => 'Tanpa Tag', 'slug' => 'tanpa-tag', 'body' => 'x', 'status' => 'published', 'published_at' => now(), 'show_on_glosspro' => true]);
+
+        $this->getJson('/api/cms/articles/bertag?site=glosspro', $this->headers())
+            ->assertOk()->assertJsonPath('data.tags', ['Coating', 'PPF']);
+        $this->getJson('/api/cms/articles/tanpa-tag?site=glosspro', $this->headers())
+            ->assertOk()->assertJsonPath('data.tags', []);
+    }
+
     public function test_show_returns_404_for_a_draft_or_wrong_site_or_missing_slug(): void
     {
         Article::create(['title' => 'Draft', 'slug' => 'draft-item', 'body' => 'x', 'status' => 'draft', 'show_on_glosspro' => true]);

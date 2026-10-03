@@ -58,6 +58,7 @@ class ArticleController extends Controller
 
         $payload = $this->summarize($article);
         $payload['body'] = $article->body;
+        $payload['tags'] = $article->tags ?: [];
         $payload['media'] = $article->media->map(function (CmsMedia $media) {
             return $this->mediaPayload($media);
         })->all();

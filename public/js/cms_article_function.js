@@ -26,6 +26,7 @@ $(function () {
     $('#form-article').on('submit', function (e) {
         e.preventDefault();
         $('#body').val(quill.root.innerHTML);
+        addTag($('#tag-input').val());
 
         var formData = new FormData(this);
         var id = $('#article_id').val();
@@ -135,6 +136,7 @@ $(function () {
             $('#slug').val(article.slug);
             $('#excerpt').val(article.excerpt);
             $('#category').val(article.category);
+            (article.tags || []).forEach(addTag);
             $('#status').val(article.status);
             $('#show_on_glosspro').prop('checked', !!article.show_on_glosspro);
             $('#show_on_lexent').prop('checked', !!article.show_on_lexent);
@@ -150,6 +152,53 @@ $(function () {
                 );
             });
         });
+    }
+
+    var MAX_TAGS = 10;
+
+    $('#cms-tag-box').on('click', function () {
+        $('#tag-input').focus();
+    });
+
+    $('#tag-input').on('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            addTag($(this).val());
+        } else if (e.key === 'Backspace' && $(this).val() === '') {
+            $('#cms-tag-box .cms-tag-chip').last().remove();
+        }
+    }).on('blur', function () {
+        addTag($(this).val());
+    });
+
+    $(document).on('click', '.remove-tag', function () {
+        $(this).closest('.cms-tag-chip').remove();
+    });
+
+    function addTag(raw) {
+        var tag = $.trim(String(raw || '').replace(/,/g, ' '));
+        $('#tag-input').val('');
+
+        if (tag === '') {
+            return;
+        }
+
+        var exists = $('#cms-tag-box .cms-tag-chip').toArray().some(function (chip) {
+            return $(chip).data('tag').toLowerCase() === tag.toLowerCase();
+        });
+        if (exists) {
+            return;
+        }
+        if ($('#cms-tag-box .cms-tag-chip').length >= MAX_TAGS) {
+            toastr.warning('Maksimal ' + MAX_TAGS + ' tag.');
+            return;
+        }
+
+        var $chip = $('<span class="cms-tag-chip"></span>').data('tag', tag);
+        $chip.append($('<span></span>').text(tag));
+        $chip.append($('<input type="hidden" name="tags[]">').val(tag));
+        $chip.append('<span class="remove-tag">&times;</span>');
+        $('#tag-input').before($chip);
     }
 
     function slugify(text) {

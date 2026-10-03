@@ -75,6 +75,39 @@ class ArticleAdminTest extends TestCase
         $this->assertCount(1, $article->fresh()->media);
     }
 
+    public function test_store_saves_cleaned_tags_and_update_can_clear_them(): void
+    {
+        $this->postJson('/cms/articles', [
+            'title' => 'Bertag', 'slug' => 'bertag', 'body' => '<p>x</p>', 'status' => 'draft',
+            'tags' => ['  Coating ', 'coating', '', 'Detailing', 'PPF'],
+        ])->assertOk();
+
+        $article = Article::where('slug', 'bertag')->firstOrFail();
+        $this->assertSame(['Coating', 'Detailing', 'PPF'], $article->tags);
+
+        $this->putJson('/cms/articles/' . $article->id, [
+            'title' => 'Bertag', 'slug' => 'bertag', 'body' => '<p>x</p>', 'status' => 'draft',
+        ])->assertOk();
+        $this->assertSame([], $article->fresh()->tags);
+    }
+
+    public function test_store_rejects_too_many_or_too_long_tags(): void
+    {
+        $base = ['title' => 'T', 'slug' => 't', 'body' => '<p>x</p>', 'status' => 'draft'];
+
+        $this->postJson('/cms/articles', $base + ['tags' => array_map(fn ($i) => "tag$i", range(1, 11))])
+            ->assertStatus(422)->assertJsonValidationErrors('tags');
+        $this->postJson('/cms/articles', $base + ['tags' => [str_repeat('a', 31)]])
+            ->assertStatus(422)->assertJsonValidationErrors('tags.0');
+    }
+
+    public function test_show_returns_tags_for_the_edit_form(): void
+    {
+        $article = Article::create(['title' => 'Edit', 'slug' => 'edit', 'body' => 'x', 'status' => 'draft', 'tags' => ['Satu', 'Dua']]);
+
+        $this->getJson('/cms/articles/' . $article->id)->assertOk()->assertJsonPath('tags', ['Satu', 'Dua']);
+    }
+
     public function test_destroy_deletes_the_article_and_its_media_files(): void
     {
         $article = Article::create(['title' => 'Hapus', 'slug' => 'hapus', 'body' => 'x', 'status' => 'draft']);

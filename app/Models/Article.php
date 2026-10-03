@@ -12,11 +12,12 @@ class Article extends Model
     protected $table = 'cms_articles';
 
     protected $fillable = [
-        'title', 'slug', 'excerpt', 'body', 'category',
+        'title', 'slug', 'excerpt', 'body', 'category', 'tags',
         'status', 'published_at', 'show_on_glosspro', 'show_on_lexent', 'created_by',
     ];
 
     protected $casts = [
+        'tags' => 'array',
         'published_at' => 'datetime',
         'show_on_glosspro' => 'boolean',
         'show_on_lexent' => 'boolean',

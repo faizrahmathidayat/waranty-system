@@ -105,10 +105,13 @@ class ArticleController extends Controller
             'excerpt' => 'nullable|string|max:500',
             'body' => 'required|string',
             'category' => 'nullable|string|max:100',
+            'tags' => 'nullable|array|max:10',
+            'tags.*' => 'nullable|string|max:30',
             'status' => 'required|in:draft,published',
             'published_at' => 'nullable|date',
         ]);
 
+        $data['tags'] = $this->normalizedTags($request->input('tags', []));
         $data['show_on_glosspro'] = $request->boolean('show_on_glosspro');
         $data['show_on_lexent'] = $request->boolean('show_on_lexent');
 
@@ -117,6 +120,29 @@ class ArticleController extends Controller
         }
 
         return $data;
+    }
+
+    /**
+     * Trim, drop blanks and remove case-insensitive duplicates, keeping the first spelling.
+     */
+    private function normalizedTags(array $tags): array
+    {
+        $seen = [];
+        $result = [];
+
+        foreach ($tags as $tag) {
+            $tag = trim((string) $tag);
+            $key = mb_strtolower($tag);
+
+            if ($tag === '' || isset($seen[$key])) {
+                continue;
+            }
+
+            $seen[$key] = true;
+            $result[] = $tag;
+        }
+
+        return $result;
     }
 
     private function storeUploadedImages(Article $article, Request $request): void

@@ -24,6 +24,7 @@ class PortfolioController extends Controller
         return view('cms.portfolio.index', [
             'title' => 'Portofolio',
             'navbar' => 'CMS - Portofolio',
+            'categories' => PortfolioItem::whereNotNull('category')->where('category', '!=', '')->distinct()->orderBy('category')->pluck('category'),
         ]);
     }
 

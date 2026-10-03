@@ -77,7 +77,13 @@
                     </div>
                     <div class="form-group">
                         <label>Kategori (opsional)</label>
-                        <input type="text" class="form-control" id="category" name="category">
+                        <input type="text" class="form-control" id="category" name="category" list="category-suggestions" autocomplete="off">
+                        <datalist id="category-suggestions">
+                            @foreach($categories as $category)
+                                <option value="{{ $category }}">
+                            @endforeach
+                        </datalist>
+                        <small class="form-text text-muted">Dipakai sebagai tombol filter di halaman Portofolio situs. Pilih dari saran agar penulisannya konsisten.</small>
                     </div>
                     <div class="form-group">
                         <label>Lokasi (opsional)</label>

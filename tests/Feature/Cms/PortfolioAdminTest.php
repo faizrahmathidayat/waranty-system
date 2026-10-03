@@ -22,6 +22,19 @@ class PortfolioAdminTest extends TestCase
         Storage::fake('public');
     }
 
+    public function test_admin_form_suggests_existing_categories(): void
+    {
+        PortfolioItem::create(['title' => 'A', 'slug' => 'a', 'body' => 'x', 'category' => 'PPF', 'status' => 'draft']);
+        PortfolioItem::create(['title' => 'B', 'slug' => 'b', 'body' => 'x', 'category' => 'PPF', 'status' => 'draft']);
+        PortfolioItem::create(['title' => 'C', 'slug' => 'c', 'body' => 'x', 'category' => 'Kaca Film Mobil', 'status' => 'draft']);
+
+        $html = $this->get('/cms/portfolio')->assertOk()->getContent();
+
+        $this->assertStringContainsString('<datalist id="category-suggestions">', $html);
+        $this->assertSame(1, substr_count($html, '<option value="PPF">'));
+        $this->assertStringContainsString('<option value="Kaca Film Mobil">', $html);
+    }
+
     public function test_store_creates_a_portfolio_item_with_location_and_images(): void
     {
         $response = $this->postJson('/cms/portfolio', [

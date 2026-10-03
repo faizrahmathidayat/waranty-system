@@ -964,7 +964,7 @@ class CmsSeeder extends Seeder
             [
                 'slug' => 'lexent-ht-15-toyota-alphard-jakarta-selatan',
                 'title' => 'Pemasangan LEXENT HT 15 Toyota Alphard',
-                'category' => 'Automotive Windowfilm',
+                'category' => 'Kaca Film Mobil',
                 'location' => 'Jakarta Selatan',
                 'excerpt' => 'Toyota Alphard milik pelanggan korporat dipasangi LEXENT HT 15 untuk kenyamanan penumpang dengan visibilitas tetap terjaga.',
                 'body' => '<p>Sebagai kendaraan operasional korporat yang sering mengangkut tamu penting, pemilik memprioritaskan keseimbangan antara privasi dan kejernihan pandangan dari dalam kabin.</p><p>LEXENT HT 15 dipilih karena teknologi nano ceramic HD-nya memberikan penolakan panas signifikan tanpa membuat kabin terasa terlalu gelap di siang hari.</p>',
@@ -973,7 +973,7 @@ class CmsSeeder extends Seeder
             [
                 'slug' => 'lexent-mk-08-armada-taksi-eksekutif-tangerang',
                 'title' => 'LEXENT MK 08 Non-Metal untuk Armada Taksi Eksekutif',
-                'category' => 'Automotive Windowfilm',
+                'category' => 'Kaca Film Mobil',
                 'location' => 'Tangerang',
                 'excerpt' => 'Puluhan unit armada taksi eksekutif dipasangi LEXENT MK 08 agar sinyal aplikasi pemesanan tidak terganggu selama beroperasi.',
                 'body' => '<p>Perusahaan penyedia layanan taksi eksekutif membutuhkan kaca film yang tidak mengganggu sinyal GPS dan aplikasi pemesanan pada perangkat di dalam kendaraan, mengingat seluruh armada sangat bergantung pada konektivitas real-time.</p><p>LEXENT MK 08 dengan teknologi Magnetron Sputter non-metal menjadi solusi tepat, memberikan privasi tinggi bagi penumpang tanpa mengorbankan performa sinyal elektronik di dalam kabin.</p>',
@@ -982,7 +982,7 @@ class CmsSeeder extends Seeder
             [
                 'slug' => 'lexent-ir99-08-range-rover-velar-bandung',
                 'title' => 'LEXENT IR99 08 pada Range Rover Velar',
-                'category' => 'Automotive Windowfilm',
+                'category' => 'Kaca Film Mobil',
                 'location' => 'Bandung',
                 'excerpt' => 'Range Rover Velar dipasangi LEXENT IR99 08 untuk penolakan panas maksimal saat digunakan berkendara jarak jauh.',
                 'body' => '<p>Pemilik kendaraan yang sering melakukan perjalanan jarak jauh antar kota menginginkan kabin yang tetap sejuk tanpa terlalu bergantung pada AC agar konsumsi bahan bakar lebih efisien.</p><p>LEXENT IR99 08 dengan teknologi UV400 Nano Ceramic HD memberikan heat rejection hingga 81%, salah satu yang tertinggi di seluruh lini produk automotive LEXENT.</p>',
@@ -991,7 +991,7 @@ class CmsSeeder extends Seeder
             [
                 'slug' => 'lexent-bp-05-alphard-executive-lounge-surabaya',
                 'title' => 'LEXENT BP 05 Privasi Maksimal Alphard Executive Lounge',
-                'category' => 'Automotive Windowfilm',
+                'category' => 'Kaca Film Mobil',
                 'location' => 'Surabaya',
                 'excerpt' => 'Toyota Alphard konfigurasi Executive Lounge dipasangi LEXENT BP 05 pada kaca belakang untuk privasi penumpang VIP.',
                 'body' => '<p>Kendaraan dengan konfigurasi kabin VIP ini digunakan untuk menjemput tamu penting perusahaan yang membutuhkan privasi tinggi selama perjalanan.</p><p>LEXENT BP 05 dengan VLT 5% dipasang pada kaca belakang dan samping belakang, memberikan privasi maksimal sekaligus penolakan UV hingga 99% untuk kenyamanan penumpang.</p>',
@@ -1000,7 +1000,7 @@ class CmsSeeder extends Seeder
             [
                 'slug' => 'lexent-ht-70-toyota-fortuner-semarang',
                 'title' => 'Upgrade Kaca Film LEXENT HT 70 Toyota Fortuner',
-                'category' => 'Automotive Windowfilm',
+                'category' => 'Kaca Film Mobil',
                 'location' => 'Semarang',
                 'excerpt' => 'Kaca depan Toyota Fortuner di-upgrade menggunakan LEXENT HT 70 untuk visibilitas malam hari yang lebih baik.',
                 'body' => '<p>Pemilik kendaraan yang sering berkendara malam hari untuk perjalanan dinas mengeluhkan visibilitas yang kurang optimal dengan kaca film lamanya yang terlalu gelap di bagian depan.</p><p>LEXENT HT 70 dipilih sebagai solusi karena tetap menghadirkan visibilitas tinggi di kaca depan tanpa mengorbankan penolakan panas dan UV sesuai standar seri HT.</p>',
@@ -1009,7 +1009,7 @@ class CmsSeeder extends Seeder
             [
                 'slug' => 'lexent-black-vision-gedung-perkantoran-jakarta-pusat',
                 'title' => 'LEXENT Black Vision Fasad Gedung Perkantoran 20 Lantai',
-                'category' => 'Building Windowfilm',
+                'category' => 'Kaca Film Bangunan',
                 'location' => 'Jakarta Pusat',
                 'excerpt' => 'Fasad kaca gedung perkantoran 20 lantai dilapisi LEXENT Black Vision untuk privasi ruang kerja dan efisiensi energi.',
                 'body' => '<p>Pengelola gedung perkantoran ingin meningkatkan privasi visual dari luar bangunan tanpa mengurangi cahaya alami yang masuk ke dalam ruang kerja karyawan di setiap lantai.</p><p>LEXENT Black Vision dipilih karena karakter privasi tingginya yang konsisten di seluruh fasad, sekaligus membantu menekan beban pendinginan gedung berkat penolakan panas yang signifikan.</p>',
@@ -1018,7 +1018,7 @@ class CmsSeeder extends Seeder
             [
                 'slug' => 'lexent-reflective-mal-bsd-tangerang-selatan',
                 'title' => 'Kaca Film Reflective untuk Mal di Kawasan BSD',
-                'category' => 'Building Windowfilm',
+                'category' => 'Kaca Film Bangunan',
                 'location' => 'Tangerang Selatan',
                 'excerpt' => 'Fasad kaca pusat perbelanjaan di kawasan BSD tampil lebih modern dengan LEXENT Reflective Series.',
                 'body' => '<p>Pengembang pusat perbelanjaan menginginkan tampilan fasad yang lebih premium dan modern sebagai bagian dari identitas visual properti komersial baru di kawasan BSD.</p><p>LEXENT Reflective Series menghadirkan karakter reflektif yang memantulkan langit dan lingkungan sekitar, sekaligus menolak infrared hingga 92% untuk menjaga kenyamanan suhu di dalam area belanja.</p>',
@@ -1027,7 +1027,7 @@ class CmsSeeder extends Seeder
             [
                 'slug' => 'lexent-high-performance-rumah-sakit-surabaya',
                 'title' => 'LEXENT High Performance Rumah Sakit Modern',
-                'category' => 'Building Windowfilm',
+                'category' => 'Kaca Film Bangunan',
                 'location' => 'Surabaya',
                 'excerpt' => 'Fasad kaca rumah sakit modern dilapisi LEXENT High Performance untuk kenyamanan pasien dan efisiensi energi.',
                 'body' => '<p>Pengelola rumah sakit membutuhkan solusi kaca film yang menjaga ruangan tetap terang secara alami namun tidak menyebabkan silau berlebih maupun panas berlebih bagi pasien dan tenaga medis.</p><p>LEXENT High Performance dengan teknologi Ultra HD Nano Ceramic memberikan kejernihan tinggi sekaligus penolakan panas hingga 72%, cocok untuk fasilitas kesehatan dengan kebutuhan kenyamanan visual dan termal.</p>',
@@ -1036,7 +1036,7 @@ class CmsSeeder extends Seeder
             [
                 'slug' => 'lexent-ultra-protect-menara-perkantoran-jakarta-selatan',
                 'title' => 'Ultra Protect untuk Menara Perkantoran Grade A',
-                'category' => 'Building Windowfilm',
+                'category' => 'Kaca Film Bangunan',
                 'location' => 'Jakarta Selatan',
                 'excerpt' => 'Menara perkantoran grade A menggunakan LEXENT Ultra Protect untuk performa penolakan panas dan UV terbaik di kelasnya.',
                 'body' => '<p>Sebagai gedung perkantoran grade A yang mengutamakan efisiensi operasional, pengelola gedung memilih kaca film dengan performa penolakan panas dan UV tertinggi yang tersedia di lini produk LEXENT.</p><p>LEXENT Ultra Protect dengan teknologi Sputter Magnetron memberikan infrared rejection hingga 99%, membantu menekan beban pendinginan gedung secara signifikan sepanjang tahun.</p>',
@@ -1045,7 +1045,7 @@ class CmsSeeder extends Seeder
             [
                 'slug' => 'lexent-black-vision-hotel-bintang-lima-denpasar',
                 'title' => 'LEXENT Black Vision Hotel Bintang Lima',
-                'category' => 'Building Windowfilm',
+                'category' => 'Kaca Film Bangunan',
                 'location' => 'Denpasar',
                 'excerpt' => 'Hotel bintang lima di Denpasar memilih LEXENT Black Vision untuk fasad kaca kamar tamu yang menghadap langsung ke area publik.',
                 'body' => '<p>Kamar-kamar tamu yang menghadap langsung ke kolam renang dan area publik hotel membutuhkan solusi privasi visual tanpa mengorbankan pemandangan dari dalam kamar.</p><p>LEXENT Black Vision dipasang pada seluruh fasad kamar yang menghadap area publik, memberikan privasi tinggi bagi tamu sekaligus menjaga kesejukan ruangan di tengah iklim tropis Bali.</p>',
@@ -1054,7 +1054,7 @@ class CmsSeeder extends Seeder
             [
                 'slug' => 'lexent-up-65-gedung-universitas-bandung',
                 'title' => 'Kaca Film Ultra Protect 65 Gedung Universitas',
-                'category' => 'Building Windowfilm',
+                'category' => 'Kaca Film Bangunan',
                 'location' => 'Bandung',
                 'excerpt' => 'Gedung perkuliahan baru sebuah universitas di Bandung menggunakan LEXENT Ultra Protect untuk kenyamanan ruang kelas.',
                 'body' => '<p>Ruang kelas dengan fasad kaca besar sering menghadapi masalah panas berlebih di siang hari, mengganggu kenyamanan belajar mengajar terutama pada jam-jam dengan intensitas matahari tinggi.</p><p>LEXENT Ultra Protect varian VLT 58% dipilih untuk tetap mempertahankan cahaya alami yang cukup di ruang kelas, sambil menekan panas yang masuk melalui infrared rejection tinggi.</p>',
@@ -1063,7 +1063,7 @@ class CmsSeeder extends Seeder
             [
                 'slug' => 'lexent-mk-20-fleet-mobil-dinas-korporat-jakarta',
                 'title' => 'LEXENT MK 20 untuk Fleet Mobil Dinas Korporat',
-                'category' => 'Automotive Windowfilm',
+                'category' => 'Kaca Film Mobil',
                 'location' => 'Jakarta',
                 'excerpt' => 'Seluruh armada mobil dinas sebuah perusahaan korporat dipasangi LEXENT MK 20 secara serentak.',
                 'body' => '<p>Divisi General Affair perusahaan ingin menstandardisasi kaca film pada seluruh armada mobil dinas, dengan syarat utama tidak mengganggu perangkat komunikasi dan navigasi yang digunakan tim lapangan.</p><p>LEXENT MK 20 dipilih sebagai standar armada karena konsistensi performanya — non-metal, bebas gangguan sinyal, dengan penolakan panas dan UV yang seragam di seluruh unit kendaraan.</p>',
@@ -1072,7 +1072,7 @@ class CmsSeeder extends Seeder
             [
                 'slug' => 'lexent-ir99-35-mercedes-benz-s-class-medan',
                 'title' => 'LEXENT IR99 35 Mercedes-Benz S-Class',
-                'category' => 'Automotive Windowfilm',
+                'category' => 'Kaca Film Mobil',
                 'location' => 'Medan',
                 'excerpt' => 'Mercedes-Benz S-Class dipasangi LEXENT IR99 35 untuk kenyamanan penumpang dengan visibilitas seimbang.',
                 'body' => '<p>Sebagai sedan mewah yang sering digunakan untuk perjalanan bisnis dengan penumpang di kursi belakang, pemilik menginginkan kaca film dengan kejernihan tinggi namun tetap nyaman dari sisi panas dan silau.</p><p>LEXENT IR99 35 dengan VLT 36% memberikan keseimbangan antara privasi, visibilitas, dan infrared rejection hingga 99%, sesuai karakter kendaraan premium ini.</p>',
@@ -1081,7 +1081,7 @@ class CmsSeeder extends Seeder
             [
                 'slug' => 'lexent-hp-35-apartemen-mewah-makassar',
                 'title' => 'Kaca Film Gedung High Performance 35 Apartemen Mewah',
-                'category' => 'Building Windowfilm',
+                'category' => 'Kaca Film Bangunan',
                 'location' => 'Makassar',
                 'excerpt' => 'Unit-unit apartemen mewah di Makassar menggunakan LEXENT High Performance untuk kenyamanan penghuni sehari-hari.',
                 'body' => '<p>Pengembang apartemen mewah ingin memberikan nilai tambah bagi penghuni berupa kenyamanan termal tanpa mengurangi pemandangan kota yang menjadi daya tarik utama unit-unit di lantai atas.</p><p>LEXENT High Performance varian VLT 35% dipilih karena tetap mempertahankan cahaya alami yang cukup terang, sambil menekan panas matahari yang masuk ke dalam unit hunian.</p>',
@@ -1090,7 +1090,7 @@ class CmsSeeder extends Seeder
             [
                 'slug' => 'lexent-up-08-kantor-cabang-bank-jakarta-barat',
                 'title' => 'LEXENT Ultra Protect Kantor Cabang Bank Nasional',
-                'category' => 'Building Windowfilm',
+                'category' => 'Kaca Film Bangunan',
                 'location' => 'Jakarta Barat',
                 'excerpt' => 'Kantor cabang sebuah bank nasional melapisi fasad kacanya dengan LEXENT Ultra Protect 08 untuk privasi dan efisiensi energi.',
                 'body' => '<p>Sebagai kantor layanan nasabah, bangunan ini membutuhkan privasi visual yang tinggi terhadap area publik di luar, tanpa mengorbankan kenyamanan suhu ruangan bagi nasabah dan staf.</p><p>LEXENT Ultra Protect 08 dipilih karena kombinasi privasi tinggi dan penolakan panas maksimal, sejalan dengan standar efisiensi energi yang diterapkan bank pada seluruh jaringan kantor cabangnya.</p>',

@@ -13,9 +13,9 @@ class ProductVariant extends Model
 
     protected $primaryKey = 'id_product_variant';
 
-    protected $fillable = ['id_product', 'code', 'name', 'value', 'unit', 'harga_tambahan', 'is_active'];
+    protected $fillable = ['id_product', 'name', 'value', 'is_active'];
 
-    protected $casts = ['harga_tambahan' => 'decimal:2', 'is_active' => 'boolean'];
+    protected $casts = ['is_active' => 'boolean'];
 
     public function product(): BelongsTo { return $this->belongsTo(Product::class, 'id_product', 'id_product'); }
     public function orderDetails(): HasMany { return $this->hasMany(OrderDetail::class, 'id_product_variant', 'id_product_variant'); }

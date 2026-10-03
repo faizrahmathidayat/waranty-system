@@ -162,7 +162,7 @@ class OrderController extends Controller
     public function productVariants($idProduct)
     {
         $this->ensureAuthenticated();
-        return response()->json(ProductVariant::where('id_product', $idProduct)->where('is_active', true)->orderBy('name')->get(['id_product_variant', 'code', 'name', 'value', 'unit', 'harga_tambahan']));
+        return response()->json(ProductVariant::where('id_product', $idProduct)->where('is_active', true)->orderBy('name')->get(['id_product_variant', 'name', 'value']));
     }
 
     private function formData(?Order $order = null): array

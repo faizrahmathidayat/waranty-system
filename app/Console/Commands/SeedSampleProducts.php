@@ -64,18 +64,14 @@ class SeedSampleProducts extends Command
 
             foreach ($mobileProductIds as $productId) {
                 foreach (['20%', '40%', '60%', '80%'] as $variant) {
-                    $variantCode = str_replace('%', '', $variant);
-                    if (DB::table('product_variants')->where('id_product', $productId)->where('code', $variantCode)->exists()) {
+                    if (DB::table('product_variants')->where('id_product', $productId)->where('name', $variant)->exists()) {
                         continue;
                     }
 
                     DB::table('product_variants')->insert([
                         'id_product' => $productId,
-                        'code' => $variantCode,
                         'name' => $variant,
                         'value' => $variant,
-                        'unit' => 'VLT',
-                        'harga_tambahan' => 0,
                         'is_active' => true,
                         'created_at' => $now,
                         'updated_at' => $now,

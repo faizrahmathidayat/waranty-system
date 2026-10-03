@@ -77,28 +77,6 @@
                         <tr>
 
                             <td style="font-size:15px;font-weight:bold;">
-                                Jenis
-                            </td>
-
-                            <td>
-
-                                <input type="text"
-                                    id="jenis_detail"
-                                    name="jenis_detail"
-                                    class="form-control"
-                                    autocomplete="off">
-
-                                <div id="jenis_detail_notif"
-                                    class="invalid-feedback">
-                                </div>
-
-                            </td>
-
-                        </tr>
-
-                        <tr>
-
-                            <td style="font-size:15px;font-weight:bold;">
                                 Product Type
                             </td><td><select id="id_product_type_detail" name="id_product_type_detail" class="form-control select2" style="width:100%"><option value="">-- Pilih Product Type --</option>@foreach($productTypes as $type)<option value="{{ $type->id_product_type }}">{{ $type->name }}</option>@endforeach</select></td>
                         </tr>

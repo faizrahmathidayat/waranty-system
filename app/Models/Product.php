@@ -57,7 +57,6 @@ class Product extends Model
 
             'nama_produk'          => request('nama_produk'),
             'brand'                => request('brand'),
-            'jenis'                => request('jenis'),
             'id_product_type'      => request('id_product_type'),
             'kode_produk'          => request('kode_produk'),
             'harga_default'        => request('harga_default'),
@@ -101,7 +100,6 @@ class Product extends Model
 
             'nama_produk'          => request('nama_produk_detail'),
             'brand'                => request('brand_detail'),
-            'jenis'                => request('jenis_detail'),
             'id_product_type'      => request('id_product_type_detail'),
             'kode_produk'          => request('kode_produk_detail'),
             'harga_default'        => request('harga_default_detail'),

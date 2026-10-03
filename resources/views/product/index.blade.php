@@ -42,7 +42,6 @@
 
                                         <th>Brand</th>
 
-                                        <th>Jenis</th>
                                         <th>Product Type</th>
 
                                         <th>Status</th>

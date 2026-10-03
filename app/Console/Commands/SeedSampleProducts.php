@@ -48,7 +48,6 @@ class SeedSampleProducts extends Command
                         'kode_produk' => $code,
                         'nama_produk' => $name,
                         'brand' => $brand,
-                        'jenis' => $kind,
                         'harga_default' => $price,
                         'is_warranty_eligible' => true,
                         'status' => 'enabled',

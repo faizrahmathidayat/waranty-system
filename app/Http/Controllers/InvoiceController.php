@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BankAccount;
 use App\Models\Invoice;
 use App\Models\Order;
 use Illuminate\Database\QueryException;
@@ -60,7 +61,7 @@ class InvoiceController extends Controller
         } catch (\Throwable $exception) { Log::error('Invoice cancellation failed.', ['id_invoice' => $id, 'exception' => $exception]); return response()->json(['message' => 'Gagal membatalkan Invoice.'], 500); }
     }
 
-    public function print($id) { $this->auth(); $invoice = Invoice::with(['items', 'order.vehicle', 'order.building', 'customer'])->findOrFail($id); return view('invoice.print', compact('invoice')); }
+    public function print($id) { $this->auth(); $invoice = Invoice::with(['items', 'order.vehicle', 'order.building', 'customer'])->findOrFail($id); $bankAccounts = BankAccount::active()->orderBy('bank_name')->get(); return view('invoice.print', compact('invoice', 'bankAccounts')); }
 
     private function createFromOrder($idOrder): Invoice
     {

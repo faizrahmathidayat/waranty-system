@@ -98,6 +98,9 @@
                 <li class="nav-item"><a href="/technician" class="nav-link {{ Request::url() == url('/technician') ? 'active' : '' }}"><i class="nav-icon fas fa-user-cog"></i>
                         <p>Teknisi</p>
                     </a></li>
+                <li class="nav-item"><a href="/bank-account" class="nav-link {{ Request::url() == url('/bank-account') ? 'active' : '' }}"><i class="nav-icon fas fa-university"></i>
+                        <p>Rekening</p>
+                    </a></li>
                 <li class="nav-item">
                     <a href="/user" class="nav-link {{ Request::url() == url('/user') ? 'active' : '' }}">
                         <i class="nav-icon fas fas fa-user"></i>

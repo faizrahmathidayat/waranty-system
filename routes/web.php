@@ -18,6 +18,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ServiceCompletionController;
 use App\Http\Controllers\TechnicianController;
+use App\Http\Controllers\BankAccountController;
 use App\Http\Controllers\Cms\ArticleController;
 use App\Http\Controllers\Cms\CatalogController;
 use App\Http\Controllers\Cms\PortfolioController;
@@ -61,7 +62,7 @@ Route::get('/product/show/{id_product}', [ProductController::class, 'show']);
 Route::post('/product/update', [ProductController::class, 'update']);
 Route::post('/product/destroy', [ProductController::class, 'destroy']);
 
-foreach (['product-type' => ProductTypeController::class, 'treatment' => TreatmentController::class, 'product-variant' => ProductVariantController::class, 'vehicle' => VehicleController::class, 'building' => BuildingController::class, 'technician' => TechnicianController::class] as $prefix => $controller) {
+foreach (['product-type' => ProductTypeController::class, 'treatment' => TreatmentController::class, 'product-variant' => ProductVariantController::class, 'vehicle' => VehicleController::class, 'building' => BuildingController::class, 'technician' => TechnicianController::class, 'bank-account' => BankAccountController::class] as $prefix => $controller) {
     Route::get("/{$prefix}", [$controller, 'index']);
     Route::get("/{$prefix}/json", [$controller, 'data']);
     Route::post("/{$prefix}/store", [$controller, 'store']);

@@ -1,3 +1,4 @@
+<style>.menu-step{display:inline-block;margin-left:4px;padding:0 4px;min-width:14px;border-radius:8px;background:#ffc107;color:#1f2d3d;font-size:9px;font-weight:700;line-height:14px;text-align:center;vertical-align:super}</style>
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
     <!-- Brand Logo -->
     <a href="/" class="brand-link">
@@ -71,29 +72,23 @@
                     </a>
                 </li>
                 <li class="nav-header">MASTER DATA</li>
+                <li class="nav-item"><a href="/treatment" class="nav-link {{ Request::url() == url('/treatment') ? 'active' : '' }}"><i class="nav-icon fas fa-tools"></i>
+                        <p>Treatment<sup class="menu-step">1</sup></p>
+                    </a></li>
+                <li class="nav-item"><a href="/product-type" class="nav-link {{ Request::url() == url('/product-type') ? 'active' : '' }}"><i class="nav-icon fas fa-tags"></i>
+                        <p>Product Type<sup class="menu-step">2</sup></p>
+                    </a></li>
+                <li class="nav-item"><a href="/product" class="nav-link {{ Request::url() == url('/product') ? 'active' : '' }}"><i class="nav-icon fas fa-box-open"></i>
+                        <p>Data Product<sup class="menu-step">3</sup></p>
+                    </a></li>
+                <li class="nav-item"><a href="/product-variant" class="nav-link {{ Request::url() == url('/product-variant') ? 'active' : '' }}"><i class="nav-icon fas fa-list-alt"></i>
+                        <p>Product Variant<sup class="menu-step">4</sup></p>
+                    </a></li>
                 <li class="nav-item"><a href="/vehicle" class="nav-link {{ Request::url() == url('/vehicle') ? 'active' : '' }}"><i class="nav-icon fas fa-car"></i>
                         <p>Vehicle</p>
                     </a></li>
                 <li class="nav-item"><a href="/building" class="nav-link {{ Request::url() == url('/building') ? 'active' : '' }}"><i class="nav-icon fas fa-building"></i>
                         <p>Building</p>
-                    </a></li>
-
-                <li class="nav-item">
-                    <a href="/product" class="nav-link {{ Request::url() == url('/product') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-box-open"></i>
-                        <p>
-                            Data Product
-                        </p>
-                    </a>
-                </li>
-                <li class="nav-item"><a href="/product-type" class="nav-link {{ Request::url() == url('/product-type') ? 'active' : '' }}"><i class="nav-icon fas fa-tags"></i>
-                        <p>Product Type</p>
-                    </a></li>
-                <li class="nav-item"><a href="/product-variant" class="nav-link {{ Request::url() == url('/product-variant') ? 'active' : '' }}"><i class="nav-icon fas fa-list-alt"></i>
-                        <p>Product Variant</p>
-                    </a></li>
-                <li class="nav-item"><a href="/treatment" class="nav-link {{ Request::url() == url('/treatment') ? 'active' : '' }}"><i class="nav-icon fas fa-tools"></i>
-                        <p>Treatment</p>
                     </a></li>
                 <li class="nav-item"><a href="/technician" class="nav-link {{ Request::url() == url('/technician') ? 'active' : '' }}"><i class="nav-icon fas fa-user-cog"></i>
                         <p>Teknisi</p>
@@ -101,14 +96,9 @@
                 <li class="nav-item"><a href="/bank-account" class="nav-link {{ Request::url() == url('/bank-account') ? 'active' : '' }}"><i class="nav-icon fas fa-university"></i>
                         <p>Rekening</p>
                     </a></li>
-                <li class="nav-item">
-                    <a href="/user" class="nav-link {{ Request::url() == url('/user') ? 'active' : '' }}">
-                        <i class="nav-icon fas fas fa-user"></i>
-                        <p>
-                            Data User
-                        </p>
-                    </a>
-                </li>
+                <li class="nav-item"><a href="/user" class="nav-link {{ Request::url() == url('/user') ? 'active' : '' }}"><i class="nav-icon fas fa-user"></i>
+                        <p>Data User</p>
+                    </a></li>
 
                 <li class="nav-header">CMS</li>
                 <li class="nav-item"><a href="/cms/articles" class="nav-link {{ Request::is('cms/articles*') ? 'active' : '' }}"><i class="nav-icon fas fa-newspaper"></i>

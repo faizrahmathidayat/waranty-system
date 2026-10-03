@@ -75,7 +75,6 @@
                                 @if($type === 'BUILDING' || ($isTransactionWarranty && $item->item_type === 'BUILDING'))
                                     @if($item->panjang && $item->lebar)<div><label>Ukuran</label><strong>{{ number_format($item->panjang, 2) }} m × {{ number_format($item->lebar, 2) }} m</strong></div>@endif
                                     <div><label>Jumlah</label><strong>{{ $isTransactionWarranty ? $item->quantity : $item->jumlah }} {{ $isTransactionWarranty ? $item->unit : 'kaca' }}</strong></div>
-                                    <div><label>Total Luas</label><strong>{{ number_format($item->total_luas, 2) }} m²</strong></div>
                                 @endif
                                 <div><label>Installed</label><strong>{{ Carbon::parse($item->tanggal_pasang)->format('d M Y') }}</strong></div>
                                 <div><label>Valid Until</label><strong>{{ Carbon::parse($item->tanggal_expired)->format('d M Y') }}</strong></div>

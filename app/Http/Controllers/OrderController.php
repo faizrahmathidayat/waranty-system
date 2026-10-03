@@ -291,9 +291,9 @@ class OrderController extends Controller
             $totalLuas = $orderType === 'BUILDING' ? round((float) $data['total_luas'], 2) : null;
             $luasPerItem = $orderType === 'BUILDING' ? round($totalLuas / $quantity, 2) : null;
             $unit = ($data['unit'] ?? null) ?: ($orderType === 'BUILDING' ? 'm2' : 'unit');
-            // Luas is operational information. Billing is always based on
-            // item quantity, including Building orders.
-            $gross = round($quantity * $unitPrice, 2);
+            // Building items are billed per m² (total luas x price); Automotive
+            // and PPF items are billed per item quantity.
+            $gross = round(($orderType === 'BUILDING' ? $totalLuas : $quantity) * $unitPrice, 2);
             if ($discountType === 'PERCENT' && $discountValue > 100) {
                 throw ValidationException::withMessages(["details.$index.discount" => 'Discount persentase tidak boleh lebih dari 100%.']);
             }

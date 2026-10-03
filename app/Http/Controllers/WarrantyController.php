@@ -243,7 +243,7 @@ class WarrantyController extends Controller
             }
             $kode = $this->generateKodeWarranty();
             $header = [
-                'kode_warranty' => $kode, 'pin_warranty' => (string) random_int(100000, 999999),
+                'kode_warranty' => $kode,
                 'id_customer' => $validated['id_customer'], 'id_warranty_type' => $type->id,
                 // Legacy columns are deliberately kept populated for existing reports/detail screens.
                 'id_product' => $firstProduct->id_product, 'no_invoice' => $request->no_invoice,
@@ -269,10 +269,10 @@ class WarrantyController extends Controller
             if ($type->code === 'CAR') WarrantyVehicle::create($identity);
             if ($type->code === 'PPF') WarrantyPpf::create($identity);
             if ($type->code === 'BUILDING') WarrantyBuilding::create(['id_warranty' => $id, 'nama_bangunan' => $request->nama_bangunan, 'alamat' => $request->alamat_bangunan]);
-            return [$kode, $header['pin_warranty']];
+            return $kode;
         });
 
-        [$kode] = $result;
+        $kode = $result;
         $folder = public_path('qrcode'); if (!is_dir($folder)) mkdir($folder, 0755, true);
         $url = route('warranty.digital', ['kode' => $kode]); $fileName = $kode . '.svg';
         file_put_contents($folder . DIRECTORY_SEPARATOR . $fileName, QrCode::size(300)->margin(2)->generate($url));
@@ -309,7 +309,6 @@ class WarrantyController extends Controller
         return response()->json([
             'id_warranty' => $warranty->id_warranty,
             'kode_warranty' => $warranty->kode_warranty,
-            'pin_warranty' => $warranty->pin_warranty,
             'id_customer' => $warranty->id_customer,
             'nama_customer' => optional($warranty->customer)->nama_customer,
             'id_warranty_type' => $warranty->id_warranty_type,
@@ -423,7 +422,7 @@ class WarrantyController extends Controller
             abort(404);
         }
 
-        return view('warranty.pin', compact('warranty'));
+        return view('warranty.digital', compact('warranty'));
     }
 
     public function checkStatus($kode)
@@ -434,24 +433,6 @@ class WarrantyController extends Controller
 
         return response()->json(['valid' => (bool) $warranty])
             ->header('Access-Control-Allow-Origin', '*');
-    }
-
-    public function verifyDigitalPin(Request $request, $kode)
-    {
-        $request->validate(['pin_warranty' => 'required|digits:6']);
-
-        $warranty = Warranty::with(['customer', 'product', 'warrantyType', 'warrantyItems', 'assetVehicle', 'assetBuilding', 'vehicle.items.product', 'building.items.product', 'ppf.items.product'])
-            ->where('kode_warranty', $kode)
-            ->where('status', '!=', 'Void')
-            ->firstOrFail();
-
-        if (!hash_equals((string) $warranty->pin_warranty, (string) $request->pin_warranty)) {
-            return back()->withErrors(['pin_warranty' => 'PIN warranty tidak sesuai.'])->withInput();
-        }
-
-        // No session flag is stored — the PIN must be re-entered on every visit
-        // to this URL, so a shared/bookmarked link never bypasses verification.
-        return view('warranty.digital', compact('warranty'));
     }
 
     public function downloadPdf($kode)

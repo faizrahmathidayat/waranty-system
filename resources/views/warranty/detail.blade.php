@@ -7,7 +7,6 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group"><label><b>Kode Warranty</b></label><input type="text" class="form-control" id="kode_warranty_detail" readonly></div>
-                        <div class="form-group"><label><b>PIN Warranty</b></label><input type="text" class="form-control" id="pin_warranty_detail" readonly></div>
                         <div class="form-group"><label><b>Customer</b></label><div id="customer_detail_read" class="form-control detail-read"></div><select class="form-control select2 detail-editable" id="id_customer_detail" name="id_customer_detail">@foreach($customers as $c)<option value="{{ $c->id_customer }}">{{ $c->nama_customer }}@if($c->status == 'disabled') (Disabled)@endif</option>@endforeach</select></div>
                         <div class="form-group"><label><b>No. Invoice</b></label><input class="form-control detail-editable" id="no_invoice_detail" name="no_invoice_detail"></div>
                         <div class="form-group"><label><b>Tanggal Pasang</b></label><input type="date" class="form-control detail-editable" id="tanggal_pasang_detail" name="tanggal_pasang_detail"></div>

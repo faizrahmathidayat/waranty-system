@@ -1184,7 +1184,7 @@ $('#filter_product, #filter_status').on('change', function () {
     }
     function renderDetail(data) {
         detailData = data; editing = false;
-        $('#id_warranty, #id_warranty_void').val(data.id_warranty); $('#kode_warranty_detail').val(data.kode_warranty); $('#pin_warranty_detail').val(data.pin_warranty || '-');
+        $('#id_warranty, #id_warranty_void').val(data.id_warranty); $('#kode_warranty_detail').val(data.kode_warranty);
         $('#detail_type_label').text(data.warranty_type_name || data.warranty_type); $('#customer_detail_read').text(data.nama_customer || '-'); $('#id_customer_detail').val(data.id_customer).trigger('change');
         $('#no_invoice_detail').val(data.no_invoice || '-'); $('#tanggal_pasang_detail').data('iso', String(data.tanggal_pasang || '').slice(0, 10)); $('#installer_detail').val(data.installer || '-'); $('#catatan_detail').val(data.catatan || '-'); $('#create_by_detail').val(data.created_by || '-');
         $('#status_badge').replaceWith('<span id="status_badge">' + statusBadge(data.status) + '</span>'); $('#btn_show_qrcode').attr('data-kode', data.kode_warranty); $('#btn_digital_warranty').attr('href', '/warranty/' + data.kode_warranty);

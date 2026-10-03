@@ -41,6 +41,7 @@ class BankAccountInvoiceTest extends TestCase
 
         $idOrder = $this->postJson('/order/store', [
             'order_type' => 'AUTOMOTIVE',
+            'brand' => 'GLOSSPRO',
             'id_customer' => $customer->id_customer,
             'id_vehicle' => $vehicle->id_vehicle,
             'id_technician' => $technician->id_technician,

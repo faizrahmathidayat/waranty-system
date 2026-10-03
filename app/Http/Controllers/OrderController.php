@@ -186,6 +186,7 @@ class OrderController extends Controller
     {
         $header = Validator::make($request->all(), [
             'order_type' => 'required|in:AUTOMOTIVE,BUILDING',
+            'brand' => 'required|in:'.implode(',', array_keys(Order::BRANDS)),
             'id_customer' => 'required|exists:customers,id_customer',
             'id_vehicle' => 'nullable|exists:vehicles,id_vehicle',
             'id_building' => 'nullable|exists:buildings,id_building',
@@ -195,6 +196,8 @@ class OrderController extends Controller
             'notes' => 'nullable|string',
             'details' => 'required|array|min:1',
         ], [
+            'brand.required' => 'Brand harus dipilih terlebih dahulu.',
+            'brand.in' => 'Brand tidak valid.',
             'id_customer.required' => 'Customer harus diisi terlebih dahulu.',
             'id_vehicle.required' => 'Vehicle harus diisi terlebih dahulu.',
             'id_building.required' => 'Building harus diisi terlebih dahulu.',
@@ -225,7 +228,7 @@ class OrderController extends Controller
         for ($attempt = 0; $attempt < 3; $attempt++) {
             try {
                 return DB::transaction(function () use ($existing, $header, $details, $subtotal, $discount) {
-                    $attributes = ['id_customer' => $header['id_customer'], 'order_type' => $header['order_type'], 'id_vehicle' => $header['order_type'] === 'AUTOMOTIVE' ? $header['id_vehicle'] : null, 'id_building' => $header['order_type'] === 'BUILDING' ? $header['id_building'] : null, 'id_technician' => $header['id_technician'], 'order_date' => $header['order_date'], 'subtotal' => $subtotal, 'discount' => $discount, 'grand_total' => $subtotal - $discount, 'notes' => $header['notes'] ?? null, 'updated_by' => Auth::id()];
+                    $attributes = ['id_customer' => $header['id_customer'], 'order_type' => $header['order_type'], 'brand' => $header['brand'], 'id_vehicle' => $header['order_type'] === 'AUTOMOTIVE' ? $header['id_vehicle'] : null, 'id_building' => $header['order_type'] === 'BUILDING' ? $header['id_building'] : null, 'id_technician' => $header['id_technician'], 'order_date' => $header['order_date'], 'subtotal' => $subtotal, 'discount' => $discount, 'grand_total' => $subtotal - $discount, 'notes' => $header['notes'] ?? null, 'updated_by' => Auth::id()];
                     if ($existing) {
                         $order = Order::lockForUpdate()->findOrFail($existing->id_order);
                         $order->update($attributes);

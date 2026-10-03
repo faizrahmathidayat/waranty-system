@@ -64,6 +64,7 @@
                                         <th>Kode Warranty</th>
                                         <th>Customer</th>
                                         <th>Product</th>
+                                        <th>Brand</th>
                                         <th>No Polisi</th>
                                         <th>No Invoice</th>
                                         <th>Tanggal Pasang</th>

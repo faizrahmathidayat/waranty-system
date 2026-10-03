@@ -12,9 +12,12 @@ class Order extends Model
 {
     use HasFactory;
 
+    public const BRANDS = ['LEXENT' => 'LEXENT', 'GLOSSPRO' => 'GlossPro'];
+    public const BRAND_LOGOS = ['LEXENT' => 'images/lexent-logo.png', 'GLOSSPRO' => 'images/glosspro-logo.png'];
+
     protected $primaryKey = 'id_order';
 
-    protected $fillable = ['order_number', 'id_customer', 'order_type', 'id_vehicle', 'id_building', 'id_technician', 'order_date', 'status', 'service_completed_at', 'subtotal', 'discount', 'grand_total', 'notes', 'created_by', 'updated_by'];
+    protected $fillable = ['order_number', 'id_customer', 'order_type', 'brand', 'id_vehicle', 'id_building', 'id_technician', 'order_date', 'status', 'service_completed_at', 'subtotal', 'discount', 'grand_total', 'notes', 'created_by', 'updated_by'];
 
     protected $casts = ['order_date' => 'date', 'service_completed_at' => 'datetime', 'subtotal' => 'decimal:2', 'discount' => 'decimal:2', 'grand_total' => 'decimal:2'];
 

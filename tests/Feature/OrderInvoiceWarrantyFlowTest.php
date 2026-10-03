@@ -51,6 +51,7 @@ class OrderInvoiceWarrantyFlowTest extends TestCase
     {
         $response = $this->postJson('/order/store', [
             'order_type' => 'AUTOMOTIVE',
+            'brand' => 'GLOSSPRO',
             'id_customer' => $parts['customer']->id_customer,
             'id_vehicle' => $parts['vehicle']->id_vehicle,
             'id_technician' => $parts['technician']->id_technician,
@@ -190,6 +191,7 @@ class OrderInvoiceWarrantyFlowTest extends TestCase
 
         $response = $this->postJson('/order/store', [
             'order_type' => 'AUTOMOTIVE',
+            'brand' => 'GLOSSPRO',
             'id_customer' => $parts['customer']->id_customer,
             'id_vehicle' => $parts['vehicle']->id_vehicle,
             'id_technician' => $parts['technician']->id_technician,
@@ -217,6 +219,7 @@ class OrderInvoiceWarrantyFlowTest extends TestCase
 
         $response = $this->postJson('/order/store', [
             'order_type' => 'AUTOMOTIVE',
+            'brand' => 'GLOSSPRO',
             'id_customer' => $parts['customer']->id_customer,
             'id_vehicle' => $parts['vehicle']->id_vehicle,
             'id_technician' => $parts['technician']->id_technician,
@@ -246,6 +249,7 @@ class OrderInvoiceWarrantyFlowTest extends TestCase
             'order_number' => 'ORD'.now()->format('Y').'9999',
             'id_customer' => $parts['customer']->id_customer,
             'order_type' => 'AUTOMOTIVE',
+            'brand' => 'GLOSSPRO',
             'id_vehicle' => $parts['vehicle']->id_vehicle,
             'id_technician' => $parts['technician']->id_technician,
             'order_date' => now()->toDateString(),

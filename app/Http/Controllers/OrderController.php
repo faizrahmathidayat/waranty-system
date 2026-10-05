@@ -218,7 +218,10 @@ class OrderController extends Controller
                 throw ValidationException::withMessages(['id_building' => 'Building wajib dipilih dan harus milik customer yang dipilih.']);
             }
         }
-        $details = $this->validatedDetails($header['details'], $header['order_type'], $header['order_date']);
+        // Areas already saved on the order being edited stay valid, so an older order
+        // with a pre-dropdown area can still be saved without being forced to change it.
+        $legacyAreas = $existing ? $existing->details()->pluck('area')->filter()->all() : [];
+        $details = $this->validatedDetails($header['details'], $header['order_type'], $header['order_date'], $legacyAreas);
         $subtotal = round(collect($details)->sum('subtotal'), 2);
         $discount = round((float) ($header['discount'] ?? 0), 2);
         if ($discount > $subtotal) throw ValidationException::withMessages(['discount' => 'Discount header tidak boleh melebihi subtotal.']);
@@ -249,10 +252,11 @@ class OrderController extends Controller
         throw new \RuntimeException('Tidak dapat membuat nomor order.');
     }
 
-    private function validatedDetails(array $items, string $orderType, string $orderDate): array
+    private function validatedDetails(array $items, string $orderType, string $orderDate, array $legacyAreas = []): array
     {
         $result = [];
         $duplicates = [];
+        $usedAreas = [];
         foreach ($items as $index => $item) {
             $data = Validator::make($item, ['id_treatment' => 'required|integer', 'id_product' => 'required|integer', 'id_product_variant' => 'nullable|integer', 'area' => $orderType === 'BUILDING' ? 'required|string|max:150' : 'nullable|string|max:150', 'area_custom' => 'nullable|string|max:150', 'total_luas' => $orderType === 'BUILDING' ? 'required|numeric|gt:0' : 'nullable|numeric', 'panjang' => 'nullable|numeric', 'lebar' => 'nullable|numeric', 'quantity' => 'required|numeric|gt:0', 'unit' => 'nullable|in:unit,m2,panel', 'unit_price' => 'nullable|numeric|min:0', 'discount' => 'nullable|numeric|min:0', 'discount_type' => 'nullable|in:NOMINAL,PERCENT', 'warranty_months' => 'nullable|integer|min:1|max:600'], [
                 'id_treatment.required' => 'Treatment harus diisi terlebih dahulu.', 'id_treatment.integer' => 'Treatment tidak valid.',
@@ -275,6 +279,15 @@ class OrderController extends Controller
             if (($orderType === 'AUTOMOTIVE' && $treatment->code === 'KACA_FILM' && $variants->isNotEmpty() && !$variant) || (($data['id_product_variant'] ?? null) && !$variant)) throw ValidationException::withMessages(["details.$index.id_product_variant" => 'Variant aktif wajib dipilih dan harus milik product.']);
             $area = ($data['area'] ?? '') === 'Lainnya' ? trim((string) ($data['area_custom'] ?? '')) : trim((string) ($data['area'] ?? ''));
             $area = $this->normalizeAutomotiveArea($area, $treatment->code);
+            if ($orderType === 'AUTOMOTIVE' && !in_array($area, array_merge(AutomotiveOrderCatalog::VEHICLE_AREAS, $legacyAreas), true)) {
+                throw ValidationException::withMessages(["details.$index.area" => 'Area harus dipilih dari daftar: ' . implode(', ', AutomotiveOrderCatalog::VEHICLE_AREAS) . '.']);
+            }
+            // Each standard vehicle area can be used once per order, whatever the treatment.
+            // (Older areas outside the dropdown are exempt so existing orders stay editable.)
+            if ($orderType === 'AUTOMOTIVE' && in_array($area, AutomotiveOrderCatalog::VEHICLE_AREAS, true)) {
+                if (isset($usedAreas[$area])) throw ValidationException::withMessages(["details.$index.area" => "Area {$area} sudah dipakai pada item lain."]);
+                $usedAreas[$area] = true;
+            }
             if (($orderType === 'BUILDING' || AutomotiveOrderCatalog::requiresArea($treatment->code)) && $area === '') throw ValidationException::withMessages(["details.$index.area" => 'Area wajib diisi untuk treatment ini.']);
             // Area is entered manually in the current Order form. Keep the
             // catalogue for suggestions/normalisation, but accept a clear
@@ -322,6 +335,14 @@ class OrderController extends Controller
             }
             $result[] = ['id_treatment' => $treatment->id_treatment, 'id_product' => $product->id_product, 'id_product_variant' => optional($variant)->id_product_variant, 'area' => $area ?: null, 'item_type' => $orderType, 'quantity' => $quantity, 'unit' => $unit, 'panjang' => $panjang, 'lebar' => $lebar, 'luas_per_item' => $luasPerItem, 'total_luas' => $totalLuas, 'unit_price' => $unitPrice, 'discount' => $discount, 'subtotal' => $gross - $discount, 'warranty_eligible' => $warrantyEligible, 'warranty_months_snapshot' => $warrantyMonths, 'tanggal_expired_snapshot' => $expiredSnapshot, 'service_status' => 'PENDING', 'product_name_snapshot' => trim($product->brand . ' - ' . $product->nama_produk, ' - '), 'variant_name_snapshot' => optional($variant)->name, 'treatment_name_snapshot' => $treatment->name, 'notes' => null];
         }
+        // One order, one product and one variant: only the treatment (and area/price/discount) can differ per item.
+        if (count(array_unique(array_column($result, 'id_product'))) > 1) {
+            throw ValidationException::withMessages(['details' => 'Product harus sama untuk semua item dalam satu order.']);
+        }
+        if (count(array_unique(array_map(fn ($detail) => (string) $detail['id_product_variant'], $result))) > 1) {
+            throw ValidationException::withMessages(['details' => 'Variant harus sama untuk semua item dalam satu order.']);
+        }
+
         return $result;
     }
 

@@ -60,7 +60,7 @@ class OrderInvoiceWarrantyFlowTest extends TestCase
             'details' => [[
                 'id_treatment' => $parts['treatment']->id_treatment,
                 'id_product' => $parts['product']->id_product,
-                'area' => 'Full Body',
+                'area' => 'Kaca Depan',
                 'quantity' => 1,
                 'unit_price' => 500000,
                 'warranty_months' => $warrantyMonths,
@@ -200,7 +200,7 @@ class OrderInvoiceWarrantyFlowTest extends TestCase
             'details' => [[
                 'id_treatment' => $parts['treatment']->id_treatment,
                 'id_product' => $parts['product']->id_product,
-                'area' => 'Full Body',
+                'area' => 'Kaca Depan',
                 'quantity' => 1,
                 'unit_price' => 500000,
                 // warranty_months omitted on purpose.
@@ -228,7 +228,7 @@ class OrderInvoiceWarrantyFlowTest extends TestCase
             'details' => [[
                 'id_treatment' => $parts['treatment']->id_treatment,
                 'id_product' => $parts['product']->id_product,
-                'area' => 'Full Body',
+                'area' => 'Kaca Depan',
                 'quantity' => 1,
                 'unit_price' => 500000,
             ]],

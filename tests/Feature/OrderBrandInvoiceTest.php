@@ -55,7 +55,7 @@ class OrderBrandInvoiceTest extends TestCase
             'details' => [[
                 'id_treatment' => $this->parts['treatment']->id_treatment,
                 'id_product' => $this->parts['product']->id_product,
-                'area' => 'Full Body',
+                'area' => 'Kaca Depan',
                 'quantity' => 1,
                 'unit_price' => 500000,
                 'warranty_months' => 6,

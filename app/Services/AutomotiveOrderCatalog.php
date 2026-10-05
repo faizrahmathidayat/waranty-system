@@ -11,6 +11,9 @@ class AutomotiveOrderCatalog
     public const AUTOMOTIVE_TREATMENTS = ['KACA_FILM', 'PPF', 'COATING', 'ANTI_KARAT', 'DETAILING'];
     public const BUILDING_TREATMENTS = ['KACA_FILM_GEDUNG'];
 
+    /** The only areas an Automotive order item can use, whatever its treatment. */
+    public const VEHICLE_AREAS = ['Kaca Depan', 'Samping Belakang', 'Samping Depan', 'Belakang', 'Sunroof / Panoramic'];
+
     private const PRODUCT_TYPE_BY_TREATMENT = [
         'KACA_FILM' => 'KACA_FILM',
         'PPF' => 'PPF',

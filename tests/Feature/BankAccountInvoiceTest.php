@@ -50,7 +50,7 @@ class BankAccountInvoiceTest extends TestCase
             'details' => [[
                 'id_treatment' => $treatment->id_treatment,
                 'id_product' => $product->id_product,
-                'area' => 'Full Body',
+                'area' => 'Kaca Depan',
                 'quantity' => 1,
                 'unit_price' => 500000,
                 'warranty_months' => 6,

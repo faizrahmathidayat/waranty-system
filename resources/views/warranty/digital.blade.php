@@ -3,26 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Warranty - {{ $warranty->kode_warranty }}</title>
+    <title>E-Warranty - {{ $warranty->kode_warranty }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <style>
-        :root { --gold:#e5a828; --gold-bright:#f6c85a; --ink:#0b0b0c; --line:rgba(255,255,255,.14); --active:#18b45b; --expired:#e53935; --void:#6c757d; --claim:#f0a11a; }
+        :root { --navy:#0f172a; --ink:#111827; --muted:#5b6472; --faint:#8a93a3; --line:#dfe3ea; --paper:#f8f9fb; --gold:#e9b208; --active:#18b45b; --expired:#e53935; --claim:#f0a11a; --void:#6c757d; }
         * { box-sizing:border-box; }
-        body { margin:0; min-height:100vh; padding:40px 24px; color:#fff; font-family:Poppins,sans-serif; background:radial-gradient(circle at top left,rgba(229,168,40,.3) 0,transparent 35%),radial-gradient(circle at bottom right,rgba(229,168,40,.12) 0,transparent 40%),linear-gradient(135deg,#050506,var(--ink)); }
-        .warranty-layout { width:min(860px,100%); margin:0 auto; }
-        .warranty-card { background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.035)); border:1px solid var(--line); box-shadow:0 22px 55px rgba(0,0,0,.3),inset 0 1px 1px rgba(255,255,255,.15); backdrop-filter:blur(12px); }
-        .item-card { background:rgba(255,255,255,.05); border:1px solid var(--line); }
-        .warranty-card { position:relative; overflow:hidden; border-radius:28px; }
-        .warranty-card:before,.warranty-card:after { content:""; position:absolute; border-radius:50%; background:rgba(255,255,255,.05); }
-        .warranty-card:before { width:330px;height:330px;top:-145px;right:-120px; }.warranty-card:after { width:250px;height:250px;bottom:-115px;left:-100px; }
-        .watermark { position:absolute; right:-24px;bottom:-72px;font-size:255px;color:rgba(255,255,255,.04); }
-        .card-content { position:relative;z-index:1;padding:36px;display:flex;flex-direction:column; }
-        .header { display:flex;justify-content:space-between;gap:18px;align-items:flex-start; }.logo { display:flex;gap:13px;align-items:center; }.logo-circle { flex:0 0 62px;width:62px;height:62px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.18);font-size:25px; }.logo h1 { margin:0;font-size:20px;letter-spacing:1px; }.logo span,.code small,.customer small,.info label { color:rgba(255,255,255,.72);font-size:12px; }.code { text-align:right; }.code strong { display:block;margin-top:5px;font-size:23px;letter-spacing:2px;word-break:break-word; }
-        .customer { margin-top:37px; }.customer h2 { margin:6px 0 0;font-size:29px;line-height:1.25;word-break:break-word; }.info-grid { display:grid;grid-template-columns:1fr 1fr;gap:20px 32px;margin-top:26px; }.info { min-width:0;padding-bottom:10px;border-bottom:1px solid var(--line); }.info label { display:block; }.info h3 { margin:7px 0 0;font-size:16px;line-height:1.45;word-break:break-word; }.footer { margin-top:auto;padding-top:35px; }.status { display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:999px;font-size:13px;font-weight:700;letter-spacing:.3px;background:var(--active);box-shadow:0 8px 25px rgba(0,0,0,.22); }.status.expired{background:var(--expired)}.status.claim{background:var(--claim)}.status.void{background:var(--void)}
-        .details-panel { margin-top:34px;padding-top:28px;border-top:1px solid var(--line); }.details-heading { display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:19px; }.details-heading h2 { margin:0;font-size:20px; }.details-heading span { color:rgba(255,255,255,.72);font-size:12px; }.item-list { display:flex;flex-direction:column;gap:15px; }.item-card { border-radius:18px;padding:19px; }.item-top { display:flex;justify-content:space-between;gap:12px;align-items:flex-start; }.item-title { display:flex;align-items:center;gap:10px;min-width:0; }.item-title i { color:var(--gold-bright);font-size:18px; }.item-title h3 { margin:0;font-size:15px;letter-spacing:.4px;word-break:break-word; }.item-status { flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:5px 9px;font-size:10px;font-weight:700;background:rgba(24,180,91,.18);color:#78e8a5;border:1px solid rgba(120,232,165,.3); }.item-status.expired { background:rgba(229,57,53,.18);color:#ff9a97;border-color:rgba(255,154,151,.3); }.item-status.claim { background:rgba(240,161,26,.18);color:#ffd580;border-color:rgba(255,213,128,.3); }.item-status.void { background:rgba(160,170,180,.18);color:#d3d8de;border-color:rgba(211,216,222,.25); }.product-name { margin:15px 0 17px;font-size:18px;font-weight:600;word-break:break-word; }.item-data { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 18px;padding-top:14px;border-top:1px solid var(--line); }.item-data div { min-width:0; }.item-data label { display:block;color:rgba(255,255,255,.66);font-size:11px; }.item-data strong { display:block;margin-top:3px;font-size:13px;line-height:1.45;word-break:break-word; }.item-footer { margin-top:16px;padding-top:13px;border-top:1px solid var(--line);font-size:12px;font-weight:700;color:#78e8a5; }.item-footer.expired{color:#ff9a97}.item-footer.claim{color:#ffd580}.item-footer.void{color:#d3d8de}.empty-items { color:rgba(255,255,255,.72);font-size:13px;padding:20px 0;text-align:center; }
-        @media (max-width: 900px) { body { padding:25px 18px; } }
-        @media (max-width: 768px) { body { padding:12px; }.warranty-card { border-radius:21px; }.card-content { padding:24px 20px; }.header { flex-direction:column; }.code { text-align:left; }.customer { margin-top:26px; }.customer h2 { font-size:24px; }.info-grid { grid-template-columns:1fr;gap:15px;margin-top:20px; }.footer { margin-top:29px;padding-top:25px; }.status { width:100%;justify-content:center;text-align:center; }.details-panel { margin-top:26px;padding-top:22px; }.details-heading { align-items:flex-start;flex-direction:column;margin-bottom:16px; }.item-card { padding:16px; }.item-top { gap:8px; }.item-title h3 { font-size:13px; }.item-status { font-size:9px;padding:5px 7px; }.product-name { font-size:16px;margin:14px 0; }.item-data { grid-template-columns:1fr;gap:10px;padding-top:12px; }.watermark { font-size:190px;right:-50px;bottom:-45px; } }
+        body { margin:0; min-height:100vh; padding:34px 22px; font-family:Poppins,sans-serif; color:var(--ink); background:linear-gradient(135deg,#e9ecf1,#f6f7f9); }
+        .sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+        .ew { width:min(1240px,100%); margin:0 auto; display:grid; grid-template-columns:minmax(360px,.9fr) minmax(480px,1.1fr); gap:28px; align-items:start; }
+
+        /* ---------- Cover card: the supplied artwork is the whole design; only the
+           dynamic values are laid over it. Positions are percentages of the artwork
+           (1542 x 2000) and sizes use container units, so it scales as one piece. ---------- */
+        .cover { position:sticky; top:24px; container-type:inline-size; overflow:hidden; border-radius:24px; background:#05070a; box-shadow:0 26px 60px rgba(15,23,42,.35); }
+        .cover-art { display:block; width:100%; height:auto; }
+        .cv { position:absolute; display:flex; flex-direction:column; justify-content:flex-start; color:#fff; }
+        .cv span, .cv strong { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; word-break:break-word; }
+        .cv-product, .cv-customer { top:65.9%; width:34%; font-size:12px; font-size:max(11px,1.95cqw); font-weight:600; line-height:1.25; }
+        .cv-product { left:12%; text-align:right; }
+        .cv-customer { left:54%; text-align:left; }
+        .cv-id { left:20.3%; width:59.5%; top:76%; height:4.9%; align-items:center; justify-content:center; text-align:center; }
+        .cv-id strong { font-size:22px; font-size:max(16px,5.1cqw); font-weight:600; letter-spacing:.06em; -webkit-line-clamp:1; }
+        .cv-status { position:absolute; left:0; right:0; top:84.2%; display:flex; justify-content:center; align-items:center; gap:.7em; font-size:12px; font-size:max(11px,1.85cqw); font-weight:600; letter-spacing:.28em; color:#2fe283; }
+        .cv-status i { font-size:1.5em; letter-spacing:0; }
+        .cv-status.expired { color:#ff7a77; } .cv-status.claim { color:#ffc766; } .cv-status.void { color:#c3c9d2; }
+        @container (max-width: 470px) { .cv-product, .cv-customer { font-size:max(10px,2.7cqw); } .cv span { -webkit-line-clamp:1; } .cv-status { letter-spacing:.18em; } }
+
+        /* ---------- Detail (light) card ---------- */
+        .detail { display:flex; flex-direction:column; padding:30px 32px 22px; border-radius:24px; background:var(--paper); border:1px solid #eceff4; box-shadow:0 20px 50px rgba(15,23,42,.12); }
+        .d-head { display:flex; justify-content:space-between; align-items:flex-start; gap:18px; padding-bottom:18px; border-bottom:1px solid var(--line); }
+        .d-head img { height:34px; width:auto; }
+        .d-head .brand-tag { display:block; margin-top:8px; font-size:9px; letter-spacing:.42em; color:var(--muted); }
+        .d-head .title { text-align:right; }
+        .d-head .title strong { display:block; font-size:clamp(16px,1.7vw,21px); font-weight:600; letter-spacing:.2em; color:var(--navy); }
+        .d-head .title span { display:block; margin-top:6px; font-size:10px; letter-spacing:.3em; color:var(--muted); line-height:1.7; }
+        .sec { display:grid; grid-template-columns:30px 1fr; gap:6px 12px; padding:18px 0; border-bottom:1px solid var(--line); }
+        .sec > i { font-size:21px; color:var(--navy); line-height:1.2; }
+        .sec h2 { margin:0 0 8px; font-size:14px; font-weight:600; letter-spacing:.12em; color:var(--navy); text-transform:uppercase; }
+        .rows { margin:0; display:grid; grid-template-columns:max-content 1fr; gap:5px 0; font-size:13px; }
+        .rows dt { color:var(--muted); padding-right:34px; }
+        .rows dd { margin:0; color:var(--ink); word-break:break-word; }
+        .rows dd:before { content:":"; display:inline-block; width:18px; color:var(--muted); }
+        .rows dt, .rows dd { line-height:1.55; }
+        .sec-split { display:grid; grid-template-columns:1.25fr 1fr; }
+        .sec-split .sec { border-bottom:0; }
+        .sec-split > .sec + .sec { border-left:1px solid var(--line); padding-left:22px; }
+        .sec-wrap { border-bottom:1px solid var(--line); }
+        .tick { list-style:none; margin:8px 0 0; padding:0; font-size:12.5px; color:var(--ink); }
+        .tick li { margin:5px 0; } .tick i { margin-right:8px; color:var(--navy); }
+        .note { margin:0; font-size:12.5px; color:var(--muted); line-height:1.6; }
+        .items { margin-top:12px; border-top:1px dashed var(--line); padding-top:10px; }
+        .items h3 { margin:0 0 6px; font-size:11px; font-weight:600; letter-spacing:.14em; color:var(--muted); text-transform:uppercase; }
+        .item { display:grid; grid-template-columns:1.1fr 1.4fr auto; gap:4px 14px; align-items:center; padding:7px 0; border-top:1px solid #eef0f4; font-size:12.5px; }
+        .item:first-of-type { border-top:0; }
+        .item b { font-weight:600; } .item small { display:block; color:var(--faint); font-size:11px; }
+        .chip { display:inline-block; padding:3px 10px; border-radius:99px; font-size:10px; font-weight:700; letter-spacing:.06em; color:#0f7a3d; background:#dff5e8; }
+        .chip.expired { color:#b3261e; background:#fde4e2; } .chip.claim { color:#a15c00; background:#fdeccc; } .chip.void { color:#4b5563; background:#e5e7eb; }
+        .cover-cols { display:grid; grid-template-columns:1fr 1fr; gap:0 22px; margin-top:12px; }
+        .cover-cols > div + div { border-left:1px solid var(--line); padding-left:20px; }
+        .cover-cols h3 { display:flex; align-items:center; gap:9px; margin:0 0 8px; font-size:13px; font-weight:600; color:var(--navy); }
+        .cover-cols h3 i { font-size:19px; }
+        .cover-cols ul { margin:0; padding-left:18px; font-size:11.5px; color:var(--muted); line-height:1.6; }
+        .penting { display:grid; grid-template-columns:1.6fr 1fr; gap:0; margin-top:18px; padding:16px 20px; border-radius:14px; background:#e6e9ef; }
+        .penting h3 { display:flex; align-items:center; gap:9px; margin:0 0 6px; font-size:12.5px; font-weight:600; letter-spacing:.1em; color:var(--navy); }
+        .penting p { margin:0; font-size:11px; line-height:1.6; color:var(--muted); }
+        .penting p u { text-decoration:underline; }
+        .cs { display:flex; flex-direction:column; justify-content:center; gap:10px; padding-left:22px; margin-left:20px; border-left:1px solid #cfd4dd; font-size:13px; }
+        .cs div { display:flex; align-items:center; gap:12px; } .cs i { font-size:22px; color:var(--navy); }
+        .cs small { display:block; font-size:10.5px; font-weight:600; color:var(--ink); }
+        .d-foot { display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:20px; font-size:9px; letter-spacing:.34em; color:var(--muted); }
+        .d-foot img { height:15px; width:auto; }
+
+        @media (max-width:980px) { body { padding:18px 14px; } .ew { grid-template-columns:1fr; max-width:640px; gap:20px; } .cover { position:relative; top:auto; } }
+        @media (max-width:560px) {
+            body { padding:10px; }
+            .cover { border-radius:20px; }
+            .detail { padding:22px 18px 18px; border-radius:20px; }
+            .d-head { flex-direction:column; } .d-head .title { text-align:left; }
+            .rows { grid-template-columns:1fr; gap:0; } .rows dt { padding:7px 0 0; font-size:11.5px; } .rows dd:before { display:none; }
+            .sec { grid-template-columns:26px 1fr; }
+            .sec-split { grid-template-columns:1fr; } .sec-split > .sec + .sec { border-left:0; padding-left:0; border-top:1px solid var(--line); }
+            .sec-split .sec:first-child { border-bottom:0; }
+            .cover-cols { grid-template-columns:1fr; gap:16px; } .cover-cols > div + div { border-left:0; padding-left:0; }
+            .penting { grid-template-columns:1fr; } .cs { margin:14px 0 0; padding:14px 0 0; border-left:0; border-top:1px solid #cfd4dd; }
+            .item { grid-template-columns:1fr auto; } .item > :nth-child(2) { grid-column:1 / -1; order:3; }
+        }
     </style>
 </head>
 <body>
@@ -35,59 +101,175 @@
     $identity = $isTransactionWarranty ? ($type === 'BUILDING' ? $warranty->assetBuilding : $warranty->assetVehicle) : ($type === 'BUILDING' ? $warranty->building : ($type === 'PPF' ? $warranty->ppf : $warranty->vehicle));
     $items = $transactionItems->isNotEmpty() ? $transactionItems : ($identity ? $identity->items : collect());
     $today = now()->startOfDay();
-    $headerStatus = $warranty->status === 'Void' ? 'Void' : ($warranty->status === 'Claim' ? 'Claim' : (Carbon::parse($warranty->tanggal_expired)->startOfDay()->lt($today) ? 'Expired' : 'Active'));
+    $statusOf = function ($itemStatus, $expiredAt) use ($warranty, $today) {
+        if ($warranty->status === 'Void') return 'Void';
+        if ($itemStatus === 'Claim' || $warranty->status === 'Claim') return 'Claim';
+        return Carbon::parse($expiredAt)->startOfDay()->lt($today) ? 'Expired' : 'Active';
+    };
+    $headerStatus = $statusOf(null, $warranty->tanggal_expired);
     $statusIcon = ['Active' => 'fa-circle-check', 'Expired' => 'fa-circle-xmark', 'Claim' => 'fa-triangle-exclamation', 'Void' => 'fa-ban'];
+
+    $customer = $warranty->customer;
+    $start = Carbon::parse($warranty->tanggal_pasang);
+    $end = Carbon::parse($warranty->tanggal_expired);
+    $diff = $start->diff($end);
+    $period = [];
+    if ($diff->y) $period[] = $diff->y . ' Tahun';
+    if ($diff->m) $period[] = $diff->m . ' Bulan';
+    if (!$period && $diff->d) $period[] = $diff->d . ' Hari';
+    $period = $period ? implode(' ', $period) : '-';
+
+    $itemProduct = fn ($item) => $isTransactionWarranty ? $item->product_name_snapshot : optional($item->product)->nama_produk;
+    $itemVariant = fn ($item) => $isTransactionWarranty ? $item->variant_name_snapshot : null;
+    $itemTitle = fn ($item) => $isTransactionWarranty ? $item->area : ($type === 'CAR' ? $item->posisi_kaca : $item->area_pekerjaan);
+    $productNames = $items->map($itemProduct)->filter()->unique()->values();
+    $variantNames = $items->map($itemVariant)->filter()->unique()->values();
+    if ($productNames->isEmpty() && optional($warranty->product)->nama_produk) $productNames = collect([$warranty->product->nama_produk]);
+
+    $vehicleName = trim((optional($identity)->merk ?: optional($identity)->merk_mobil ?: $warranty->merk_mobil) . ' ' . (optional($identity)->model ?: optional($identity)->tipe_mobil ?: $warranty->tipe_mobil));
+    $plate = optional($identity)->no_polisi ?: $warranty->no_polisi;
+    $fmt = fn ($date) => Carbon::parse($date)->format('d / m / Y');
+    $typeName = optional($warranty->warrantyType)->name ?: 'Warranty';
+    $customerName = optional($customer)->nama_customer ?: '-';
 @endphp
-<main class="warranty-layout">
-    <section class="warranty-card" id="warrantyCard">
-        <div class="watermark"><i class="fa-solid fa-shield-halved"></i></div>
-        <div class="card-content">
-            <header class="header"><div class="logo"><div class="logo-circle"><i class="fa-solid fa-shield-halved"></i></div><div><h1>DIGITAL WARRANTY</h1><span>Premium Digital Warranty Card</span></div></div><div class="code"><small>Warranty Code</small><strong>{{ $warranty->kode_warranty }}</strong></div></header>
-            <div class="customer"><small>Customer Name</small><h2>{{ optional($warranty->customer)->nama_customer }}</h2></div>
-            <div class="info-grid">
-                <div class="info"><label><i class="fa-solid fa-layer-group"></i> Product</label><h3>{{ optional($warranty->product)->nama_produk }}</h3></div>
-                @if($type === 'BUILDING')
-                    <div class="info"><label><i class="fa-solid fa-building"></i> Building Name</label><h3>{{ optional($identity)->nama_bangunan }}</h3></div>
-                    <div class="info"><label><i class="fa-solid fa-location-dot"></i> Address</label><h3>{{ optional($identity)->alamat }}</h3></div>
-                @else
-                    <div class="info"><label><i class="fa-solid fa-car"></i> Vehicle</label><h3>{{ optional($identity)->merk ?: optional($identity)->merk_mobil ?: $warranty->merk_mobil }} {{ optional($identity)->model ?: optional($identity)->tipe_mobil ?: $warranty->tipe_mobil }}</h3></div>
-                    <div class="info"><label><i class="fa-solid fa-id-card"></i> Plate Number</label><h3>{{ optional($identity)->no_polisi ?: $warranty->no_polisi }}</h3></div>
-                @endif
-                <div class="info"><label><i class="fa-solid fa-calendar-days"></i> Installation</label><h3>{{ Carbon::parse($warranty->tanggal_pasang)->format('d M Y') }}</h3></div>
-                <div class="info"><label><i class="fa-solid fa-hourglass-end"></i> Valid Until</label><h3>{{ Carbon::parse($warranty->tanggal_expired)->format('d M Y') }}</h3></div>
-                <div class="info"><label><i class="fa-solid fa-file-invoice"></i> Invoice</label><h3>{{ $warranty->no_invoice ?: '-' }}</h3></div>
-                <div class="info"><label><i class="fa-solid fa-user-gear"></i> Teknisi</label><h3>{{ $warranty->installer ?: '-' }}</h3></div>
-                <div class="info"><label><i class="fa-solid fa-note-sticky"></i> Catatan</label><h3>{{ $warranty->catatan ?: '-' }}</h3></div>
+<main class="ew">
+    {{-- ============ Cover card (artwork + dynamic values) ============ --}}
+    <section class="cover" id="warrantyCover">
+        <h1 class="sr-only">Official E-Warranty LEXENT</h1>
+        <img class="cover-art" src="{{ asset('images/warranty-cover.jpg') }}?v={{ @filemtime(public_path('images/warranty-cover.jpg')) }}" alt="" width="1542" height="2000">
+        <div class="cv cv-product"><span title="{{ $typeName }}">{{ $typeName }}</span></div>
+        <div class="cv cv-customer"><span title="{{ $customerName }}">{{ $customerName }}</span></div>
+        <div class="cv cv-id"><strong>{{ $warranty->kode_warranty }}</strong></div>
+        <div class="cv-status {{ strtolower($headerStatus) }}"><i class="fa-solid {{ $statusIcon[$headerStatus] }}"></i> WARRANTY {{ strtoupper($headerStatus) }}</div>
+    </section>
+
+    {{-- ============ Detail card ============ --}}
+    <section class="detail" id="warrantyDetail">
+        <header class="d-head">
+            <div><img src="{{ asset('images/lexent-logo.png') }}" alt="LEXENT"><span class="brand-tag">WINDOW FILM &nbsp;•&nbsp; PPF</span></div>
+            <div class="title"><strong>E-WARRANTY CARD</strong><span>AUTOMOTIVE &amp; BUILDING<br>PROTECTION FILM</span></div>
+        </header>
+
+        <div class="sec">
+            <i class="fa-regular fa-user"></i>
+            <div>
+                <h2>Data Customer</h2>
+                <dl class="rows">
+                    <dt>Nama</dt><dd>{{ $customerName }}</dd>
+                    @if(optional($customer)->no_hp)<dt>No. WhatsApp</dt><dd>{{ $customer->no_hp }}</dd>@endif
+                    @if(optional($customer)->alamat)<dt>Alamat</dt><dd>{{ $customer->alamat }}</dd>@endif
+                    <dt>Tanggal Pemasangan</dt><dd>{{ $fmt($warranty->tanggal_pasang) }}</dd>
+                </dl>
             </div>
-            <section class="details-panel">
-                <div class="details-heading"><h2>Detail Warranty</h2><span>{{ optional($warranty->warrantyType)->name ?: 'Warranty Items' }}</span></div>
-                <div class="item-list">
-                    @forelse($items as $item)
-                        @php
-                            $itemStatus = $warranty->status === 'Void' ? 'Void' : ($item->status === 'Claim' || $warranty->status === 'Claim' ? 'Claim' : (Carbon::parse($item->tanggal_expired)->startOfDay()->lt($today) ? 'Expired' : 'Active'));
-                            $title = $isTransactionWarranty ? $item->area : ($type === 'CAR' ? $item->posisi_kaca : $item->area_pekerjaan);
-                            $icon = $type === 'BUILDING' ? 'fa-building' : ($type === 'PPF' ? 'fa-shield-halved' : 'fa-car');
-                        @endphp
-                        <article class="item-card">
-                            <div class="item-top"><div class="item-title"><i class="fa-solid {{ $icon }}"></i><h3>{{ strtoupper($title) }}</h3></div><span class="item-status {{ strtolower($itemStatus) }}"><i class="fa-solid {{ $statusIcon[$itemStatus] }}"></i> {{ strtoupper($itemStatus) }}</span></div>
-                            <div class="product-name">{{ $isTransactionWarranty ? $item->product_name_snapshot : optional($item->product)->nama_produk }}{{ $isTransactionWarranty && $item->variant_name_snapshot ? ' - '.$item->variant_name_snapshot : '' }}</div>
-                            <div class="item-data">
-                                @if($type === 'BUILDING' || ($isTransactionWarranty && $item->item_type === 'BUILDING'))
-                                    @if($item->panjang && $item->lebar)<div><label>Ukuran</label><strong>{{ number_format($item->panjang, 2) }} m × {{ number_format($item->lebar, 2) }} m</strong></div>@endif
-                                    <div><label>Jumlah</label><strong>{{ $isTransactionWarranty ? $item->quantity : $item->jumlah }} {{ $isTransactionWarranty ? $item->unit : 'kaca' }}</strong></div>
-                                @endif
-                                <div><label>Installed</label><strong>{{ Carbon::parse($item->tanggal_pasang)->format('d M Y') }}</strong></div>
-                                <div><label>Valid Until</label><strong>{{ Carbon::parse($item->tanggal_expired)->format('d M Y') }}</strong></div>
-                            </div>
-                            <div class="item-footer {{ strtolower($itemStatus) }}"><i class="fa-solid {{ $statusIcon[$itemStatus] }}"></i> {{ $itemStatus === 'Active' ? 'ACTIVE WARRANTY' : strtoupper($itemStatus) }}</div>
-                        </article>
-                    @empty
-                        <p class="empty-items">Belum ada detail item warranty.</p>
-                    @endforelse
-                </div>
-            </section>
-            <footer class="footer"><div class="status {{ strtolower($headerStatus) }}"><i class="fa-solid {{ $statusIcon[$headerStatus] }}"></i> {{ strtoupper($headerStatus) }} WARRANTY</div></footer>
         </div>
+
+        <div class="sec">
+            <i class="fa-solid fa-cube"></i>
+            <div>
+                <h2>Informasi Produk</h2>
+                <dl class="rows">
+                    <dt>Jenis Produk</dt><dd>{{ $typeName }}</dd>
+                    @if($productNames->isNotEmpty())<dt>Nama Produk / Series</dt><dd>{{ $productNames->implode(', ') }}</dd>@endif
+                    @if($variantNames->isNotEmpty())<dt>Warna / Shade</dt><dd>{{ $variantNames->implode(', ') }}</dd>@endif
+                    @if($type === 'BUILDING')
+                        @if(optional($identity)->nama_bangunan)<dt>Properti</dt><dd>{{ $identity->nama_bangunan }}</dd>@endif
+                        @if(optional($identity)->alamat)<dt>Lokasi Pemasangan</dt><dd>{{ $identity->alamat }}</dd>@endif
+                    @else
+                        @if($vehicleName !== '')<dt>Kendaraan</dt><dd>{{ $vehicleName }}</dd>@endif
+                        @if($plate)<dt>No. Plat Kendaraan</dt><dd>{{ $plate }}</dd>@endif
+                    @endif
+                    @if($warranty->installer)<dt>Teknisi</dt><dd>{{ $warranty->installer }}</dd>@endif
+                    @if($warranty->no_invoice)<dt>No. Invoice</dt><dd>{{ $warranty->no_invoice }}</dd>@endif
+                    @if($warranty->catatan)<dt>Catatan</dt><dd>{{ $warranty->catatan }}</dd>@endif
+                </dl>
+
+                @if($items->isNotEmpty())
+                    <div class="items">
+                        <h3>Detail Item</h3>
+                        @foreach($items as $item)
+                            @php $itemStatus = $statusOf($item->status, $item->tanggal_expired); @endphp
+                            <div class="item">
+                                <div><b>{{ $itemTitle($item) ?: 'Item ' . $loop->iteration }}</b></div>
+                                <div>{{ $itemProduct($item) }}@if($itemVariant($item)) - {{ $itemVariant($item) }}@endif<small>Berlaku sampai {{ $fmt($item->tanggal_expired) }}</small></div>
+                                <div><span class="chip {{ strtolower($itemStatus) }}">{{ strtoupper($itemStatus) }}</span></div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <div class="sec-wrap">
+            <div class="sec-split">
+                <div class="sec">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <div>
+                        <h2>Informasi Garansi</h2>
+                        <dl class="rows">
+                            <dt>Nomor E-Warranty</dt><dd><b>{{ $warranty->kode_warranty }}</b></dd>
+                            <dt>Masa Garansi</dt><dd><b>{{ $period }}</b></dd>
+                            <dt>Berlaku Mulai</dt><dd><b>{{ $fmt($warranty->tanggal_pasang) }}</b></dd>
+                            <dt>Berlaku Sampai</dt><dd><b>{{ $fmt($warranty->tanggal_expired) }}</b></dd>
+                        </dl>
+                    </div>
+                </div>
+                <div class="sec">
+                    <i class="fa-regular fa-calendar-check"></i>
+                    <div>
+                        <h2>Jenis Produk Lainnya</h2>
+                        <p class="note">Kartu garansi ini berlaku untuk semua produk Lexent, meliputi:</p>
+                        <ul class="tick">
+                            <li><i class="fa-solid fa-check"></i>Kaca Film Mobil</li>
+                            <li><i class="fa-solid fa-check"></i>Kaca Film Bangunan</li>
+                            <li><i class="fa-solid fa-check"></i>Paint Protection Film (PPF)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sec" style="border-bottom:0;padding-bottom:0">
+            <i class="fa-regular fa-file-lines"></i>
+            <div>
+                <h2>Garansi Meliputi</h2>
+                <p class="note">Garansi Lexent berlaku terhadap cacat produk dan/atau masalah yang termasuk dalam ketentuan garansi produk yang bersangkutan selama masa garansi.</p>
+                <div class="cover-cols">
+                    <div>
+                        <h3><i class="fa-solid fa-circle-check"></i>Garansi dapat mencakup:</h3>
+                        <ul>
+                            <li>Cacat material / produk</li>
+                            <li>Perubahan kondisi produk sesuai ketentuan</li>
+                            <li>Adhesive failure sesuai ketentuan produk</li>
+                            <li>Masalah lain yang dinyatakan dalam warranty policy Lexent.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3><i class="fa-solid fa-circle-xmark"></i>Garansi tidak mencakup:</h3>
+                        <ul>
+                            <li>Kerusakan akibat kecelakaan, benturan, atau goresan</li>
+                            <li>Kerusakan akibat penggunaan yang tidak sesuai</li>
+                            <li>Kerusakan akibat modifikasi atau pemasangan pihak lain</li>
+                            <li>Kerusakan akibat faktor eksternal</li>
+                            <li>Kerusakan karena perawatan / bahan kimia yang tidak sesuai</li>
+                            <li>Kerusakan di luar ketentuan garansi Lexent.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="penting">
+            <div>
+                <h3><i class="fa-solid fa-circle-exclamation"></i>PENTING</h3>
+                <p>Garansi hanya berlaku untuk produk yang terdaftar pada sistem <u>Lexent E-Warranty</u>. Untuk melakukan klaim garansi, customer wajib menunjukkan <u>Nomor E-Warranty</u> atau melakukan verifikasi melalui sistem <u>e-Warranty Lexent</u>.</p>
+            </div>
+            <div class="cs">
+                <div><i class="fa-brands fa-whatsapp"></i><span><small>Customer Service</small>{{ config('warranty_card.customer_service_whatsapp') }}</span></div>
+                <div><i class="fa-solid fa-globe"></i><span>{{ config('warranty_card.website') }}</span></div>
+            </div>
+        </div>
+
+        <footer class="d-foot"><span>DRIVE &nbsp;·&nbsp; BUILD &nbsp;·&nbsp; PROTECT</span><img src="{{ asset('images/lexent-logo.png') }}" alt="LEXENT"></footer>
     </section>
 </main>
 </body>

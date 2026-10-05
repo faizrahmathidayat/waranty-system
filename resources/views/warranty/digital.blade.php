@@ -46,6 +46,7 @@
         .rows dd { margin:0; color:var(--ink); word-break:break-word; }
         .rows dd:before { content:":"; display:inline-block; width:18px; color:var(--muted); }
         .rows dt, .rows dd { line-height:1.55; }
+        .rows.block + .rows.block { margin-top:12px; padding-top:12px; border-top:1px dashed var(--line); }
         .sec-split { display:grid; grid-template-columns:1.25fr 1fr; }
         .sec-split .sec { border-bottom:0; }
         .sec-split > .sec + .sec { border-left:1px solid var(--line); padding-left:22px; }
@@ -53,13 +54,6 @@
         .tick { list-style:none; margin:8px 0 0; padding:0; font-size:12.5px; color:var(--ink); }
         .tick li { margin:5px 0; } .tick i { margin-right:8px; color:var(--navy); }
         .note { margin:0; font-size:12.5px; color:var(--muted); line-height:1.6; }
-        .items { margin-top:12px; border-top:1px dashed var(--line); padding-top:10px; }
-        .items h3 { margin:0 0 6px; font-size:11px; font-weight:600; letter-spacing:.14em; color:var(--muted); text-transform:uppercase; }
-        .item { display:grid; grid-template-columns:1.1fr 1.4fr auto; gap:4px 14px; align-items:center; padding:7px 0; border-top:1px solid #eef0f4; font-size:12.5px; }
-        .item:first-of-type { border-top:0; }
-        .item b { font-weight:600; } .item small { display:block; color:var(--faint); font-size:11px; }
-        .chip { display:inline-block; padding:3px 10px; border-radius:99px; font-size:10px; font-weight:700; letter-spacing:.06em; color:#0f7a3d; background:#dff5e8; }
-        .chip.expired { color:#b3261e; background:#fde4e2; } .chip.claim { color:#a15c00; background:#fdeccc; } .chip.void { color:#4b5563; background:#e5e7eb; }
         .cover-cols { display:grid; grid-template-columns:1fr 1fr; gap:0 22px; margin-top:12px; }
         .cover-cols > div + div { border-left:1px solid var(--line); padding-left:20px; }
         .cover-cols h3 { display:flex; align-items:center; gap:9px; margin:0 0 8px; font-size:13px; font-weight:600; color:var(--navy); }
@@ -87,7 +81,6 @@
             .sec-split .sec:first-child { border-bottom:0; }
             .cover-cols { grid-template-columns:1fr; gap:16px; } .cover-cols > div + div { border-left:0; padding-left:0; }
             .penting { grid-template-columns:1fr; } .cs { margin:14px 0 0; padding:14px 0 0; border-left:0; border-top:1px solid #cfd4dd; }
-            .item { grid-template-columns:1fr auto; } .item > :nth-child(2) { grid-column:1 / -1; order:3; }
         }
     </style>
 </head>
@@ -122,9 +115,16 @@
     $itemProduct = fn ($item) => $isTransactionWarranty ? $item->product_name_snapshot : optional($item->product)->nama_produk;
     $itemVariant = fn ($item) => $isTransactionWarranty ? $item->variant_name_snapshot : null;
     $itemTitle = fn ($item) => $isTransactionWarranty ? $item->area : ($type === 'CAR' ? $item->posisi_kaca : $item->area_pekerjaan);
-    $productNames = $items->map($itemProduct)->filter()->unique()->values();
-    $variantNames = $items->map($itemVariant)->filter()->unique()->values();
-    if ($productNames->isEmpty() && optional($warranty->product)->nama_produk) $productNames = collect([$warranty->product->nama_produk]);
+    // Automotive items are listed in the card's own area order; building items keep their order.
+    $areaOrder = ['Kaca Depan', 'Samping Depan', 'Samping Belakang', 'Belakang', 'Sunroof / Panoramic'];
+    $sortedItems = $type === 'BUILDING'
+        ? $items->values()
+        : $items->values()->sortBy(function ($item, $i) use ($areaOrder, $itemTitle) {
+            $pos = array_search($itemTitle($item), $areaOrder, true);
+            return ($pos === false ? 100 : $pos) * 1000 + $i;
+        })->values();
+    $jenisProduk = optional(optional($warranty->product)->productType)->name ?: (optional($warranty->warrantyType)->name ?: 'Warranty');
+    $luas = fn ($value) => rtrim(rtrim(number_format((float) $value, 2, ',', '.'), '0'), ',');
 
     $vehicleName = trim((optional($identity)->merk ?: optional($identity)->merk_mobil ?: $warranty->merk_mobil) . ' ' . (optional($identity)->model ?: optional($identity)->tipe_mobil ?: $warranty->tipe_mobil));
     $plate = optional($identity)->no_polisi ?: $warranty->no_polisi;
@@ -159,6 +159,13 @@
                     @if(optional($customer)->no_hp)<dt>No. WhatsApp</dt><dd>{{ $customer->no_hp }}</dd>@endif
                     @if(optional($customer)->alamat)<dt>Alamat</dt><dd>{{ $customer->alamat }}</dd>@endif
                     <dt>Tanggal Pemasangan</dt><dd>{{ $fmt($warranty->tanggal_pasang) }}</dd>
+                    @if($type === 'BUILDING')
+                        @if(optional($identity)->nama_bangunan)<dt>Properti</dt><dd>{{ $identity->nama_bangunan }}</dd>@endif
+                        @if(optional($identity)->alamat)<dt>Alamat Properti</dt><dd>{{ $identity->alamat }}</dd>@endif
+                    @else
+                        @if($vehicleName !== '')<dt>Kendaraan</dt><dd>{{ $vehicleName }}</dd>@endif
+                        @if($plate)<dt>No. Plat Kendaraan</dt><dd>{{ $plate }}</dd>@endif
+                    @endif
                 </dl>
             </div>
         </div>
@@ -167,34 +174,24 @@
             <i class="fa-solid fa-cube"></i>
             <div>
                 <h2>Informasi Produk</h2>
-                <dl class="rows">
-                    <dt>Jenis Produk</dt><dd>{{ $typeName }}</dd>
-                    @if($productNames->isNotEmpty())<dt>Nama Produk / Series</dt><dd>{{ $productNames->implode(', ') }}</dd>@endif
-                    @if($variantNames->isNotEmpty())<dt>Warna / Shade</dt><dd>{{ $variantNames->implode(', ') }}</dd>@endif
-                    @if($type === 'BUILDING')
-                        @if(optional($identity)->nama_bangunan)<dt>Properti</dt><dd>{{ $identity->nama_bangunan }}</dd>@endif
-                        @if(optional($identity)->alamat)<dt>Lokasi Pemasangan</dt><dd>{{ $identity->alamat }}</dd>@endif
-                    @else
-                        @if($vehicleName !== '')<dt>Kendaraan</dt><dd>{{ $vehicleName }}</dd>@endif
-                        @if($plate)<dt>No. Plat Kendaraan</dt><dd>{{ $plate }}</dd>@endif
-                    @endif
-                    @if($warranty->installer)<dt>Teknisi</dt><dd>{{ $warranty->installer }}</dd>@endif
-                    @if($warranty->no_invoice)<dt>No. Invoice</dt><dd>{{ $warranty->no_invoice }}</dd>@endif
-                    @if($warranty->catatan)<dt>Catatan</dt><dd>{{ $warranty->catatan }}</dd>@endif
-                </dl>
-
-                @if($items->isNotEmpty())
-                    <div class="items">
-                        <h3>Detail Item</h3>
-                        @foreach($items as $item)
-                            @php $itemStatus = $statusOf($item->status, $item->tanggal_expired); @endphp
-                            <div class="item">
-                                <div><b>{{ $itemTitle($item) ?: 'Item ' . $loop->iteration }}</b></div>
-                                <div>{{ $itemProduct($item) }}@if($itemVariant($item)) - {{ $itemVariant($item) }}@endif<small>Berlaku sampai {{ $fmt($item->tanggal_expired) }}</small></div>
-                                <div><span class="chip {{ strtolower($itemStatus) }}">{{ strtoupper($itemStatus) }}</span></div>
-                            </div>
+                @if($type === 'BUILDING')
+                    @forelse($sortedItems as $item)
+                        <dl class="rows block">
+                            <dt>Lokasi</dt><dd>{{ $itemTitle($item) ?: 'Item ' . $loop->iteration }}</dd>
+                            <dt>Jenis Produk</dt><dd>{{ $itemProduct($item) ?: '-' }}</dd>
+                            <dt>Tipe</dt><dd>{{ $itemVariant($item) ?: '-' }}</dd>
+                            @if($item->total_luas)<dt>Luas</dt><dd>{{ $luas($item->total_luas) }} m²</dd>@endif
+                        </dl>
+                    @empty
+                        <p class="note">Belum ada detail produk.</p>
+                    @endforelse
+                @else
+                    <dl class="rows">
+                        <dt>Jenis Produk</dt><dd>{{ $jenisProduk }}</dd>
+                        @foreach($sortedItems as $item)
+                            <dt>{{ $itemTitle($item) ?: 'Item ' . $loop->iteration }}</dt><dd>{{ $itemProduct($item) ?: '-' }}</dd>
                         @endforeach
-                    </div>
+                    </dl>
                 @endif
             </div>
         </div>

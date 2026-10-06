@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Warranty;
+use App\Services\WarrantyCodeGenerator;
 use App\Models\WarrantyType;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -41,7 +42,8 @@ class ServiceCompletionController extends Controller
     {
         $this->auth();
         try {
-            $warranty = DB::transaction(function () use ($id) {
+            // Retry with a fresh number if two warranties are created at the same moment.
+            $warranty = retry(3, fn () => DB::transaction(function () use ($id) {
                 $order = Order::with(['details', 'activeInvoice', 'vehicle', 'building', 'technician'])->lockForUpdate()->findOrFail($id);
                 if ($order->status !== 'COMPLETED') throw ValidationException::withMessages(['order' => 'Order harus COMPLETED sebelum generate Warranty.']);
                 if (!$order->activeInvoice || $order->activeInvoice->status !== 'PAID' || (float) $order->activeInvoice->outstanding_amount !== 0.0) throw ValidationException::withMessages(['invoice' => 'Invoice harus PAID dan tidak memiliki outstanding sebelum generate Warranty.']);
@@ -55,9 +57,9 @@ class ServiceCompletionController extends Controller
                     ['name' => $typeCode === 'BUILDING' ? 'BUILDING / BANGUNAN' : 'MOBIL / AUTOMOTIVE', 'is_active' => true]
                 );
                 if (! $type->is_active) throw ValidationException::withMessages(['order' => 'Jenis Warranty sedang tidak aktif.']);
-                $last = Warranty::lockForUpdate()->latest('id_warranty')->value('id_warranty') ?: 0; $first = $items->first();
+                $first = $items->first();
                 $warranty = Warranty::create([
-                    'kode_warranty' => 'WR'.date('Y').str_pad($last + 1, 3, '0', STR_PAD_LEFT),
+                    'kode_warranty' => app(WarrantyCodeGenerator::class)->next(),
                     'id_customer' => $order->id_customer, 'id_order' => $order->id_order, 'id_invoice' => $order->activeInvoice->id_invoice,
                     'id_vehicle' => $order->id_vehicle, 'id_building' => $order->id_building, 'id_warranty_type' => $type->id, 'user_id' => Auth::id(), 'id_product' => $first->id_product,
                     'no_invoice' => $order->activeInvoice->invoice_number, 'no_polisi' => optional($order->vehicle)->no_polisi, 'merk_mobil' => optional($order->vehicle)->merk,
@@ -74,7 +76,7 @@ class ServiceCompletionController extends Controller
                     ]);
                 }
                 return $warranty;
-            });
+            }), 0, fn ($e) => WarrantyCodeGenerator::isDuplicateCodeError($e));
             $folder = public_path('qrcode'); if (!is_dir($folder)) mkdir($folder, 0755, true);
             file_put_contents($folder.DIRECTORY_SEPARATOR.$warranty->kode_warranty.'.svg', QrCode::size(300)->margin(2)->generate(route('warranty.digital', $warranty->kode_warranty)));
             $warranty->update(['qr_code' => $warranty->kode_warranty.'.svg']);

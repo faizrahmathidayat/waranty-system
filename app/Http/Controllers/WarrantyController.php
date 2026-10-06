@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Warranty;
+use App\Services\WarrantyCodeGenerator;
 use App\Models\WarrantyBuilding;
 use App\Models\WarrantyBuildingItem;
 use App\Models\WarrantyPpf;
@@ -238,7 +239,9 @@ class WarrantyController extends Controller
             return response()->json(['message' => 'Product yang dipilih harus berstatus aktif.'], 422);
         }
 
-        $result = DB::transaction(function () use ($request, $type, $validated) {
+        // Retry with a fresh number if two warranties are created at the same moment.
+        $result = retry(3, function () use ($request, $type, $validated) {
+            return DB::transaction(function () use ($request, $type, $validated) {
             $items = $validated['items'];
             $firstProduct = Product::findOrFail($items[0]['id_product']);
             $expiries = [];
@@ -274,7 +277,8 @@ class WarrantyController extends Controller
             if ($type->code === 'PPF') WarrantyPpf::create($identity);
             if ($type->code === 'BUILDING') WarrantyBuilding::create(['id_warranty' => $id, 'nama_bangunan' => $request->nama_bangunan, 'alamat' => $request->alamat_bangunan]);
             return $kode;
-        });
+            });
+        }, 0, fn ($e) => WarrantyCodeGenerator::isDuplicateCodeError($e));
 
         $kode = $result;
         $folder = public_path('qrcode'); if (!is_dir($folder)) mkdir($folder, 0755, true);
@@ -398,17 +402,9 @@ class WarrantyController extends Controller
         $warranty->delete();
     }
 
-    private function generateKodeWarranty()
+    private function generateKodeWarranty(): string
     {
-        $last = Warranty::latest('id_warranty')->first();
-
-        if ($last) {
-            $nomor = $last->id_warranty + 1;
-        } else {
-            $nomor = 1;
-        }
-
-        return 'WR' . date('Y') . str_pad($nomor, 3, '0', STR_PAD_LEFT);
+        return app(WarrantyCodeGenerator::class)->next();
     }
 
     public function digitalWarranty($kode)

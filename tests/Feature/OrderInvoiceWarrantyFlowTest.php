@@ -133,7 +133,7 @@ class OrderInvoiceWarrantyFlowTest extends TestCase
         $warrantyResponse->assertStatus(200)->assertJson(['success' => true]);
         $kode = $warrantyResponse->json('kode');
 
-        $this->assertStringStartsWith('WR'.date('Y'), $kode);
+        $this->assertStringStartsWith('LEX-'.date('Y').'-', $kode);
 
         $warranty = Warranty::where('kode_warranty', $kode)->firstOrFail();
         $this->assertSame($parts['customer']->id_customer, $warranty->id_customer);

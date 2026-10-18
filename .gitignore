@@ -19,3 +19,6 @@ yarn-error.log
 !/storage/framework/sessions/.gitignore
 !/storage/framework/views/.gitignore
 !/storage/logs/.gitignore
+
+# Generated warranty QR codes (differ per environment)
+/public/qrcode/LEX-*.svg

@@ -23,7 +23,7 @@ class InvoiceController extends Controller
     {
         $this->auth();
         $query = Invoice::query()->join('orders', 'orders.id_order', '=', 'invoices.id_order')->join('customers', 'customers.id_customer', '=', 'invoices.id_customer')
-            ->select('invoices.*', 'orders.order_number', 'orders.order_type', 'orders.brand', 'customers.nama_customer');
+            ->select('invoices.*', 'orders.order_number', 'orders.order_type', 'customers.nama_customer');
         if ($request->filled('status')) $query->where('invoices.status', $request->status);
         if ($request->filled('id_customer')) $query->where('invoices.id_customer', $request->id_customer);
         if ($request->filled('order_type')) $query->where('orders.order_type', $request->order_type);
@@ -74,7 +74,7 @@ class InvoiceController extends Controller
                     if ($order->details->isEmpty()) throw ValidationException::withMessages(['order' => 'Order tidak memiliki detail.']);
                     $invoice = Invoice::create(['invoice_number' => $this->nextNumber(), 'id_order' => $order->id_order, 'id_customer' => $order->id_customer, 'invoice_date' => now()->toDateString(), 'due_date' => null, 'status' => 'OPEN', 'notes' => $order->notes, 'created_by' => Auth::id(), 'updated_by' => Auth::id()]);
                     foreach ($order->details as $detail) {
-                        if ($detail->subtotal < 0 || !$detail->product_name_snapshot || !$detail->treatment_name_snapshot) throw ValidationException::withMessages(['order' => 'Snapshot detail Order tidak valid.']);
+                        if ($detail->subtotal < 0 || !$detail->product_name_snapshot) throw ValidationException::withMessages(['order' => 'Snapshot detail Order tidak valid.']);
                         $invoice->items()->create(['id_order_detail' => $detail->id_order_detail, 'product_name' => $detail->product_name_snapshot, 'variant_name' => $detail->variant_name_snapshot, 'treatment_name' => $detail->treatment_name_snapshot, 'area' => $detail->area, 'quantity' => $detail->quantity, 'unit' => $detail->unit, 'panjang' => $detail->panjang, 'lebar' => $detail->lebar, 'total_luas' => $detail->total_luas, 'unit_price' => $detail->unit_price, 'discount' => $detail->discount, 'subtotal' => $detail->subtotal]);
                     }
                     $subtotal = round((float) $invoice->items()->sum('subtotal'), 2); $discount = round((float) $order->discount, 2);

@@ -9,7 +9,6 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductType;
 use App\Models\Technician;
-use App\Models\Treatment;
 use App\Models\Vehicle;
 use App\Models\Warranty;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -37,28 +36,25 @@ class OrderInvoiceWarrantyFlowTest extends TestCase
         $vehicle = Vehicle::factory()->create(['id_customer' => $customer->id_customer]);
         $technician = Technician::factory()->create();
         $productType = ProductType::factory()->create(['order_category' => 'AUTOMOTIVE']);
-        $treatment = Treatment::factory()->create(['code' => 'COATING', 'order_category' => 'AUTOMOTIVE']);
         $product = Product::factory()->create([
             'id_product_type' => $productType->id_product_type,
             'status' => 'enabled',
             'is_warranty_eligible' => true,
         ]);
 
-        return compact('customer', 'vehicle', 'technician', 'productType', 'treatment', 'product');
+        return compact('customer', 'vehicle', 'technician', 'productType', 'product');
     }
 
     private function storeOrder(array $parts, int $warrantyMonths = 6): int
     {
         $response = $this->postJson('/order/store', [
             'order_type' => 'AUTOMOTIVE',
-            'brand' => 'GLOSSPRO',
             'id_customer' => $parts['customer']->id_customer,
             'id_vehicle' => $parts['vehicle']->id_vehicle,
             'id_technician' => $parts['technician']->id_technician,
             'order_date' => now()->toDateString(),
             'discount' => 0,
             'details' => [[
-                'id_treatment' => $parts['treatment']->id_treatment,
                 'id_product' => $parts['product']->id_product,
                 'area' => 'Kaca Depan',
                 'quantity' => 1,
@@ -191,14 +187,12 @@ class OrderInvoiceWarrantyFlowTest extends TestCase
 
         $response = $this->postJson('/order/store', [
             'order_type' => 'AUTOMOTIVE',
-            'brand' => 'GLOSSPRO',
             'id_customer' => $parts['customer']->id_customer,
             'id_vehicle' => $parts['vehicle']->id_vehicle,
             'id_technician' => $parts['technician']->id_technician,
             'order_date' => now()->toDateString(),
             'discount' => 0,
             'details' => [[
-                'id_treatment' => $parts['treatment']->id_treatment,
                 'id_product' => $parts['product']->id_product,
                 'area' => 'Kaca Depan',
                 'quantity' => 1,
@@ -219,14 +213,12 @@ class OrderInvoiceWarrantyFlowTest extends TestCase
 
         $response = $this->postJson('/order/store', [
             'order_type' => 'AUTOMOTIVE',
-            'brand' => 'GLOSSPRO',
             'id_customer' => $parts['customer']->id_customer,
             'id_vehicle' => $parts['vehicle']->id_vehicle,
             'id_technician' => $parts['technician']->id_technician,
             'order_date' => now()->toDateString(),
             'discount' => 0,
             'details' => [[
-                'id_treatment' => $parts['treatment']->id_treatment,
                 'id_product' => $parts['product']->id_product,
                 'area' => 'Kaca Depan',
                 'quantity' => 1,
@@ -249,7 +241,6 @@ class OrderInvoiceWarrantyFlowTest extends TestCase
             'order_number' => 'ORD'.now()->format('Y').'9999',
             'id_customer' => $parts['customer']->id_customer,
             'order_type' => 'AUTOMOTIVE',
-            'brand' => 'GLOSSPRO',
             'id_vehicle' => $parts['vehicle']->id_vehicle,
             'id_technician' => $parts['technician']->id_technician,
             'order_date' => now()->toDateString(),

@@ -112,10 +112,6 @@ class WarrantyController extends Controller
                 'customers.nama_customer',
                 'products.nama_produk'
             )
-            ->selectSub(
-                \App\Models\Order::select('brand')->whereColumn('orders.id_order', 'warranties.id_order'),
-                'brand'
-            )
             ->orderBy('warranties.id_warranty', 'desc');
 
 

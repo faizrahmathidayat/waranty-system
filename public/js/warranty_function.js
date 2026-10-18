@@ -51,15 +51,6 @@ $(function () {
             },
 
             {
-                data: 'brand',
-                orderable: false,
-                searchable: false,
-                render: function (data) {
-                    return data === 'GLOSSPRO' ? 'GlossPro' : (data || '-');
-                }
-            },
-
-            {
                 data: 'no_polisi',
                 name: 'no_polisi'
             },

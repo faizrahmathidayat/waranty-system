@@ -1,6 +1,6 @@
 @extends('layout/layout')
 @section('content')
-@section('title', 'Product')
+@section('title', 'Product Type')
 
 <section class="content" style="padding-top: 17px;">
     <div class="container-fluid">
@@ -16,7 +16,7 @@
                             data-toggle="modal"
                             data-target="#modal_tambah_product">
 
-                            Tambah Product
+                            Tambah Product Type
 
                         </button>
 
@@ -38,11 +38,10 @@
 
                                         <th>No</th>
 
-                                        <th>Nama Product</th>
+                                        <th>Nama Product Type</th>
 
-                                        <th>Brand</th>
 
-                                        <th>Product Type</th>
+                                        <th>Product</th>
 
                                         <th>Status</th>
 

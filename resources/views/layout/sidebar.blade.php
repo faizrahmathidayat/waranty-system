@@ -72,17 +72,14 @@
                     </a>
                 </li>
                 <li class="nav-header">MASTER DATA</li>
-                <li class="nav-item"><a href="/treatment" class="nav-link {{ Request::url() == url('/treatment') ? 'active' : '' }}"><i class="nav-icon fas fa-tools"></i>
-                        <p>Treatment<sup class="menu-step">1</sup></p>
-                    </a></li>
                 <li class="nav-item"><a href="/product-type" class="nav-link {{ Request::url() == url('/product-type') ? 'active' : '' }}"><i class="nav-icon fas fa-tags"></i>
-                        <p>Product Type<sup class="menu-step">2</sup></p>
+                        <p>Product<sup class="menu-step">1</sup></p>
                     </a></li>
                 <li class="nav-item"><a href="/product" class="nav-link {{ Request::url() == url('/product') ? 'active' : '' }}"><i class="nav-icon fas fa-box-open"></i>
-                        <p>Data Product<sup class="menu-step">3</sup></p>
+                        <p>Product Type<sup class="menu-step">2</sup></p>
                     </a></li>
                 <li class="nav-item"><a href="/product-variant" class="nav-link {{ Request::url() == url('/product-variant') ? 'active' : '' }}"><i class="nav-icon fas fa-list-alt"></i>
-                        <p>Product Variant<sup class="menu-step">4</sup></p>
+                        <p>Kegelapan<sup class="menu-step">3</sup></p>
                     </a></li>
                 <li class="nav-item"><a href="/vehicle" class="nav-link {{ Request::url() == url('/vehicle') ? 'active' : '' }}"><i class="nav-icon fas fa-car"></i>
                         <p>Vehicle</p>

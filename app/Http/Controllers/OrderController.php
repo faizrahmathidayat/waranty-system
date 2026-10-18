@@ -7,7 +7,6 @@ use App\Models\Building;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductVariant;
-use App\Models\Treatment;
 use App\Models\Technician;
 use App\Models\Vehicle;
 use App\Services\AutomotiveOrderCatalog;
@@ -62,7 +61,7 @@ class OrderController extends Controller
     public function show($id)
     {
         $this->ensureAuthenticated();
-        $order = $this->order($id)->load(['customer', 'vehicle', 'building', 'technician', 'activeInvoice', 'invoices', 'warranties.warrantyItems', 'details.treatment', 'details.product', 'details.productVariant']);
+        $order = $this->order($id)->load(['customer', 'vehicle', 'building', 'technician', 'activeInvoice', 'invoices', 'warranties.warrantyItems', 'details.product', 'details.productVariant']);
         return view('order.show', [
             'order' => $order,
             'navbar' => 'Order',
@@ -72,7 +71,7 @@ class OrderController extends Controller
     public function edit($id)
     {
         $this->ensureAuthenticated();
-        $order = $this->order($id)->load(['vehicle', 'building', 'technician', 'details.treatment', 'details.product', 'details.productVariant']);
+        $order = $this->order($id)->load(['vehicle', 'building', 'technician', 'details.product', 'details.productVariant']);
         abort_unless($order->status === 'OPEN', 403, 'Hanya Order OPEN yang dapat diubah.');
         return view('order.form', $this->formData($order));
     }
@@ -147,15 +146,14 @@ class OrderController extends Controller
         return response()->json(Building::where('id_customer', $idCustomer)->where('status', 'active')->orderBy('nama_bangunan')->get(['id_building', 'nama_bangunan', 'alamat']));
     }
 
-    public function treatmentProducts(Request $request, $idTreatment)
+    public function products(Request $request)
     {
         $this->ensureAuthenticated();
         $orderType = $request->validate(['order_type' => 'required|in:AUTOMOTIVE,BUILDING'])['order_type'];
-        Treatment::where('is_active', true)->where('order_category', $orderType)->findOrFail($idTreatment);
         $products = Product::query()->join('product_types', 'product_types.id_product_type', '=', 'products.id_product_type')
             ->where('products.status', 'enabled')->where('product_types.is_active', true)->where('product_types.order_category', $orderType)
-            ->orderBy('products.brand')->orderBy('products.nama_produk')
-            ->get(['products.id_product', 'products.brand', 'products.nama_produk', 'products.harga_default', 'products.is_warranty_eligible']);
+            ->orderBy('products.nama_produk')
+            ->get(['products.id_product', 'products.nama_produk', 'products.harga_default', 'products.is_warranty_eligible']);
         return response()->json(['data' => $products]);
     }
 
@@ -173,7 +171,6 @@ class OrderController extends Controller
             'order' => $order,
             'customers' => Customer::where('status', 'enabled')->orderBy('nama_customer')->get(['id_customer', 'nama_customer', 'no_hp']),
             'technicians' => Technician::where('is_active', true)->orderBy('name')->get(['id_technician', 'code', 'name']),
-            'treatments' => Treatment::where('is_active', true)->orderBy('name')->get(['id_treatment', 'code', 'name', 'order_category']),
         ];
     }
 
@@ -186,7 +183,6 @@ class OrderController extends Controller
     {
         $header = Validator::make($request->all(), [
             'order_type' => 'required|in:AUTOMOTIVE,BUILDING',
-            'brand' => 'required|in:'.implode(',', array_keys(Order::BRANDS)),
             'id_customer' => 'required|exists:customers,id_customer',
             'id_vehicle' => 'nullable|exists:vehicles,id_vehicle',
             'id_building' => 'nullable|exists:buildings,id_building',
@@ -196,8 +192,6 @@ class OrderController extends Controller
             'notes' => 'nullable|string',
             'details' => 'required|array|min:1',
         ], [
-            'brand.required' => 'Brand harus dipilih terlebih dahulu.',
-            'brand.in' => 'Brand tidak valid.',
             'id_customer.required' => 'Customer harus diisi terlebih dahulu.',
             'id_vehicle.required' => 'Vehicle harus diisi terlebih dahulu.',
             'id_building.required' => 'Building harus diisi terlebih dahulu.',
@@ -231,7 +225,7 @@ class OrderController extends Controller
         for ($attempt = 0; $attempt < 3; $attempt++) {
             try {
                 return DB::transaction(function () use ($existing, $header, $details, $subtotal, $discount) {
-                    $attributes = ['id_customer' => $header['id_customer'], 'order_type' => $header['order_type'], 'brand' => $header['brand'], 'id_vehicle' => $header['order_type'] === 'AUTOMOTIVE' ? $header['id_vehicle'] : null, 'id_building' => $header['order_type'] === 'BUILDING' ? $header['id_building'] : null, 'id_technician' => $header['id_technician'], 'order_date' => $header['order_date'], 'subtotal' => $subtotal, 'discount' => $discount, 'grand_total' => $subtotal - $discount, 'notes' => $header['notes'] ?? null, 'updated_by' => Auth::id()];
+                    $attributes = ['id_customer' => $header['id_customer'], 'order_type' => $header['order_type'], 'id_vehicle' => $header['order_type'] === 'AUTOMOTIVE' ? $header['id_vehicle'] : null, 'id_building' => $header['order_type'] === 'BUILDING' ? $header['id_building'] : null, 'id_technician' => $header['id_technician'], 'order_date' => $header['order_date'], 'subtotal' => $subtotal, 'discount' => $discount, 'grand_total' => $subtotal - $discount, 'notes' => $header['notes'] ?? null, 'updated_by' => Auth::id()];
                     if ($existing) {
                         $order = Order::lockForUpdate()->findOrFail($existing->id_order);
                         $order->update($attributes);
@@ -256,10 +250,8 @@ class OrderController extends Controller
     {
         $result = [];
         $duplicates = [];
-        $usedAreas = [];
         foreach ($items as $index => $item) {
-            $data = Validator::make($item, ['id_treatment' => 'required|integer', 'id_product' => 'required|integer', 'id_product_variant' => 'nullable|integer', 'area' => $orderType === 'BUILDING' ? 'required|string|max:150' : 'nullable|string|max:150', 'area_custom' => 'nullable|string|max:150', 'total_luas' => $orderType === 'BUILDING' ? 'required|numeric|gt:0' : 'nullable|numeric', 'panjang' => 'nullable|numeric', 'lebar' => 'nullable|numeric', 'quantity' => 'required|numeric|gt:0', 'unit' => 'nullable|in:unit,m2,panel', 'unit_price' => 'nullable|numeric|min:0', 'discount' => 'nullable|numeric|min:0', 'discount_type' => 'nullable|in:NOMINAL,PERCENT', 'warranty_months' => 'nullable|integer|min:1|max:600'], [
-                'id_treatment.required' => 'Treatment harus diisi terlebih dahulu.', 'id_treatment.integer' => 'Treatment tidak valid.',
+            $data = Validator::make($item, ['id_product' => 'required|integer', 'id_product_variant' => 'nullable|integer', 'area' => $orderType === 'BUILDING' ? 'required|string|max:150' : 'nullable|string|max:150', 'area_custom' => 'nullable|string|max:150', 'total_luas' => $orderType === 'BUILDING' ? 'required|numeric|gt:0' : 'nullable|numeric', 'panjang' => 'nullable|numeric', 'lebar' => 'nullable|numeric', 'quantity' => 'required|numeric|gt:0', 'unit' => 'nullable|in:unit,m2,panel', 'unit_price' => 'nullable|numeric|min:0', 'discount' => 'nullable|numeric|min:0', 'discount_type' => 'nullable|in:NOMINAL,PERCENT', 'warranty_months' => 'nullable|integer|min:1|max:600'], [
                 'id_product.required' => 'Product harus diisi terlebih dahulu.', 'id_product.integer' => 'Product tidak valid.',
                 'area.required' => 'Area harus diisi terlebih dahulu.',
                 'total_luas.required' => 'Luas harus diisi terlebih dahulu.', 'total_luas.gt' => 'Luas harus lebih besar dari nol.',
@@ -269,26 +261,17 @@ class OrderController extends Controller
                 'discount_type.in' => 'Jenis discount tidak valid.',
                 'warranty_months.integer' => 'Masa Garansi harus berupa angka bulat.', 'warranty_months.min' => 'Masa Garansi harus lebih besar dari nol.',
             ])->validate();
-            $treatment = Treatment::where('is_active', true)->find($data['id_treatment']);
-            if (!$treatment || $treatment->order_category !== $orderType) throw ValidationException::withMessages(["details.$index.id_treatment" => 'Treatment tidak valid untuk kategori Order ini.']);
-            $product = Product::query()->join('product_types', 'product_types.id_product_type', '=', 'products.id_product_type')->where('products.id_product', $data['id_product'])->where('products.status', 'enabled')->where('product_types.is_active', true)->where('product_types.order_category', $orderType)->select('products.*')->first();
+            $product = Product::query()->join('product_types', 'product_types.id_product_type', '=', 'products.id_product_type')->where('products.id_product', $data['id_product'])->where('products.status', 'enabled')->where('product_types.is_active', true)->where('product_types.order_category', $orderType)->select('products.*', 'product_types.code as product_type_code')->first();
             if (!$product) throw ValidationException::withMessages(["details.$index.id_product" => 'Product tidak sesuai dengan kategori Order atau tidak aktif.']);
             $variants = ProductVariant::where('id_product', $product->id_product)->where('is_active', true)->get();
             $variant = null;
             if ($data['id_product_variant'] ?? null) $variant = $variants->firstWhere('id_product_variant', (int) $data['id_product_variant']);
-            if (($orderType === 'AUTOMOTIVE' && $treatment->code === 'KACA_FILM' && $variants->isNotEmpty() && !$variant) || (($data['id_product_variant'] ?? null) && !$variant)) throw ValidationException::withMessages(["details.$index.id_product_variant" => 'Variant aktif wajib dipilih dan harus milik product.']);
+            if (($orderType === 'AUTOMOTIVE' && $product->product_type_code === 'KACA_FILM' && $variants->isNotEmpty() && !$variant) || (($data['id_product_variant'] ?? null) && !$variant)) throw ValidationException::withMessages(["details.$index.id_product_variant" => 'Variant aktif wajib dipilih dan harus milik product.']);
             $area = ($data['area'] ?? '') === 'Lainnya' ? trim((string) ($data['area_custom'] ?? '')) : trim((string) ($data['area'] ?? ''));
-            $area = $this->normalizeAutomotiveArea($area, $treatment->code);
             if ($orderType === 'AUTOMOTIVE' && !in_array($area, array_merge(AutomotiveOrderCatalog::VEHICLE_AREAS, $legacyAreas), true)) {
                 throw ValidationException::withMessages(["details.$index.area" => 'Area harus dipilih dari daftar: ' . implode(', ', AutomotiveOrderCatalog::VEHICLE_AREAS) . '.']);
             }
-            // Each standard vehicle area can be used once per order, whatever the treatment.
-            // (Older areas outside the dropdown are exempt so existing orders stay editable.)
-            if ($orderType === 'AUTOMOTIVE' && in_array($area, AutomotiveOrderCatalog::VEHICLE_AREAS, true)) {
-                if (isset($usedAreas[$area])) throw ValidationException::withMessages(["details.$index.area" => "Area {$area} sudah dipakai pada item lain."]);
-                $usedAreas[$area] = true;
-            }
-            if (($orderType === 'BUILDING' || AutomotiveOrderCatalog::requiresArea($treatment->code)) && $area === '') throw ValidationException::withMessages(["details.$index.area" => 'Area wajib diisi untuk treatment ini.']);
+            if ($area === '') throw ValidationException::withMessages(["details.$index.area" => 'Area wajib diisi.']);
             // Area is entered manually in the current Order form. Keep the
             // catalogue for suggestions/normalisation, but accept a clear
             // custom area such as "Full selain kaca depan".
@@ -317,8 +300,8 @@ class OrderController extends Controller
                 ? round($gross * $discountValue / 100, 2)
                 : $discountValue;
             if ($discount > $gross) throw ValidationException::withMessages(["details.$index.discount" => 'Discount item tidak boleh melebihi gross item.']);
-            $key = implode('|', [$treatment->id_treatment, mb_strtolower($area), $product->id_product, optional($variant)->id_product_variant]);
-            if (isset($duplicates[$key])) throw ValidationException::withMessages(["details.$index" => 'Item dengan treatment, area, product, dan variant yang sama sudah ada.']);
+            $key = implode('|', [mb_strtolower($area), $product->id_product, optional($variant)->id_product_variant]);
+            if (isset($duplicates[$key])) throw ValidationException::withMessages(["details.$index" => 'Item dengan area, product, dan variant yang sama sudah ada.']);
             $duplicates[$key] = true;
             // Warranty length is entered per order item rather than fixed on the
             // product master, so the expiry date is a snapshot taken from this
@@ -333,16 +316,8 @@ class OrderController extends Controller
                 $warrantyMonths = (int) $data['warranty_months'];
                 $expiredSnapshot = Carbon::parse($orderDate)->addMonths($warrantyMonths)->toDateString();
             }
-            $result[] = ['id_treatment' => $treatment->id_treatment, 'id_product' => $product->id_product, 'id_product_variant' => optional($variant)->id_product_variant, 'area' => $area ?: null, 'item_type' => $orderType, 'quantity' => $quantity, 'unit' => $unit, 'panjang' => $panjang, 'lebar' => $lebar, 'luas_per_item' => $luasPerItem, 'total_luas' => $totalLuas, 'unit_price' => $unitPrice, 'discount' => $discount, 'subtotal' => $gross - $discount, 'warranty_eligible' => $warrantyEligible, 'warranty_months_snapshot' => $warrantyMonths, 'tanggal_expired_snapshot' => $expiredSnapshot, 'service_status' => 'PENDING', 'product_name_snapshot' => trim($product->brand . ' - ' . $product->nama_produk, ' - '), 'variant_name_snapshot' => optional($variant)->name, 'treatment_name_snapshot' => $treatment->name, 'notes' => null];
+            $result[] = ['id_product' => $product->id_product, 'id_product_variant' => optional($variant)->id_product_variant, 'area' => $area ?: null, 'item_type' => $orderType, 'quantity' => $quantity, 'unit' => $unit, 'panjang' => $panjang, 'lebar' => $lebar, 'luas_per_item' => $luasPerItem, 'total_luas' => $totalLuas, 'unit_price' => $unitPrice, 'discount' => $discount, 'subtotal' => $gross - $discount, 'warranty_eligible' => $warrantyEligible, 'warranty_months_snapshot' => $warrantyMonths, 'tanggal_expired_snapshot' => $expiredSnapshot, 'service_status' => 'PENDING', 'product_name_snapshot' => $product->nama_produk, 'variant_name_snapshot' => optional($variant)->name, 'notes' => null];
         }
-        // One order, one product and one variant: only the treatment (and area/price/discount) can differ per item.
-        if (count(array_unique(array_column($result, 'id_product'))) > 1) {
-            throw ValidationException::withMessages(['details' => 'Product harus sama untuk semua item dalam satu order.']);
-        }
-        if (count(array_unique(array_map(fn ($detail) => (string) $detail['id_product_variant'], $result))) > 1) {
-            throw ValidationException::withMessages(['details' => 'Variant harus sama untuk semua item dalam satu order.']);
-        }
-
         return $result;
     }
 
@@ -352,24 +327,5 @@ class OrderController extends Controller
         $last = Order::where('order_number', 'like', $prefix . '%')->lockForUpdate()->orderByDesc('order_number')->value('order_number');
         $sequence = $last ? ((int) substr($last, -4)) + 1 : 1;
         return $prefix . str_pad((string) $sequence, 4, '0', STR_PAD_LEFT);
-    }
-
-    private function normalizeAutomotiveArea(string $area, string $treatmentCode): string
-    {
-        if ($treatmentCode !== 'KACA_FILM') return $area;
-        $key = mb_strtolower(trim($area));
-        return [
-            'kaca depan' => 'Kaca Depan',
-            'kaca belakang' => 'Kaca Belakang',
-            'kaca kiri depan' => 'Samping Kiri Depan',
-            'kaca kanan depan' => 'Samping Kanan Depan',
-            'kaca kiri belakang' => 'Samping Kiri Belakang',
-            'kaca kanan belakang' => 'Samping Kanan Belakang',
-            'samping kiri depan' => 'Samping Kiri Depan',
-            'samping kanan depan' => 'Samping Kanan Depan',
-            'samping kiri belakang' => 'Samping Kiri Belakang',
-            'samping kanan belakang' => 'Samping Kanan Belakang',
-            'sunroof' => 'Sunroof',
-        ][$key] ?? $area;
     }
 }

@@ -14,7 +14,6 @@ class ProductFactory extends Factory
     {
         return [
             'nama_produk' => $this->faker->words(3, true),
-            'brand' => $this->faker->company(),
             'status' => 'enabled',
             'keterangan' => null,
             'id_product_type' => ProductType::factory(),

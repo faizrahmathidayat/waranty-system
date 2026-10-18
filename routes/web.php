@@ -9,7 +9,6 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WarrantyController;
 use App\Http\Controllers\ProductTypeController;
-use App\Http\Controllers\TreatmentController;
 use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\BuildingController;
@@ -62,7 +61,7 @@ Route::get('/product/show/{id_product}', [ProductController::class, 'show']);
 Route::post('/product/update', [ProductController::class, 'update']);
 Route::post('/product/destroy', [ProductController::class, 'destroy']);
 
-foreach (['product-type' => ProductTypeController::class, 'treatment' => TreatmentController::class, 'product-variant' => ProductVariantController::class, 'vehicle' => VehicleController::class, 'building' => BuildingController::class, 'technician' => TechnicianController::class, 'bank-account' => BankAccountController::class] as $prefix => $controller) {
+foreach (['product-type' => ProductTypeController::class, 'product-variant' => ProductVariantController::class, 'vehicle' => VehicleController::class, 'building' => BuildingController::class, 'technician' => TechnicianController::class, 'bank-account' => BankAccountController::class] as $prefix => $controller) {
     Route::get("/{$prefix}", [$controller, 'index']);
     Route::get("/{$prefix}/json", [$controller, 'data']);
     Route::post("/{$prefix}/store", [$controller, 'store']);
@@ -83,7 +82,7 @@ Route::post('/order/confirm/{id}', [OrderController::class, 'confirm']);
 Route::post('/order/cancel/{id}', [OrderController::class, 'cancel']);
 Route::get('/order/customer/{id_customer}/vehicles', [OrderController::class, 'customerVehicles']);
 Route::get('/order/customer/{id_customer}/buildings', [OrderController::class, 'customerBuildings']);
-Route::get('/order/treatment/{id_treatment}/products', [OrderController::class, 'treatmentProducts']);
+Route::get('/order/products', [OrderController::class, 'products']);
 Route::get('/order/product/{id_product}/variants', [OrderController::class, 'productVariants']);
 Route::post('/order/{id}/generate-warranty', [ServiceCompletionController::class, 'generate']);
 

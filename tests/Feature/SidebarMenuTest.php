@@ -14,13 +14,14 @@ class SidebarMenuTest extends TestCase
     {
         $this->actingAs(Login::factory()->create());
 
-        $html = $this->get('/treatment')->assertOk()->getContent();
+        $html = $this->get('/product-type')->assertOk()->getContent();
         $section = substr($html, strpos($html, 'MASTER DATA'), strpos($html, 'nav-header">CMS') - strpos($html, 'MASTER DATA'));
 
         $this->assertMatchesRegularExpression(
-            '/Treatment<sup class="menu-step">1<\/sup>.*Product Type<sup class="menu-step">2<\/sup>.*Data Product<sup class="menu-step">3<\/sup>.*Product Variant<sup class="menu-step">4<\/sup>.*Vehicle.*Building.*Teknisi.*Rekening.*Data User/s',
+            '/Product<sup class="menu-step">1<\/sup>.*Product Type<sup class="menu-step">2<\/sup>.*Kegelapan<sup class="menu-step">3<\/sup>.*Vehicle.*Building.*Teknisi.*Rekening.*Data User/s',
             $section
         );
-        $this->assertSame(4, substr_count($section, 'menu-step">'));
+        $this->assertStringNotContainsString('Treatment', $section);
+        $this->assertSame(3, substr_count($section, 'menu-step">'));
     }
 }

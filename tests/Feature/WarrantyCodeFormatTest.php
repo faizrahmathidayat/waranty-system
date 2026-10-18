@@ -8,7 +8,6 @@ use App\Models\Login;
 use App\Models\Product;
 use App\Models\ProductType;
 use App\Models\Technician;
-use App\Models\Treatment;
 use App\Models\Vehicle;
 use App\Services\WarrantyCodeGenerator;
 use Carbon\Carbon;
@@ -85,16 +84,15 @@ class WarrantyCodeFormatTest extends TestCase
 
         $customer = Customer::factory()->create();
         $type = ProductType::factory()->create(['order_category' => 'AUTOMOTIVE']);
-        $treatment = Treatment::factory()->create(['code' => 'COATING', 'order_category' => 'AUTOMOTIVE']);
         $product = Product::factory()->create(['id_product_type' => $type->id_product_type, 'status' => 'enabled', 'is_warranty_eligible' => true]);
 
         $codes = [];
         foreach (['Kaca Depan', 'Belakang'] as $area) {
             $vehicle = Vehicle::factory()->create(['id_customer' => $customer->id_customer]);
             $idOrder = $this->postJson('/order/store', [
-                'order_type' => 'AUTOMOTIVE', 'brand' => 'LEXENT', 'id_customer' => $customer->id_customer, 'id_vehicle' => $vehicle->id_vehicle,
+                'order_type' => 'AUTOMOTIVE', 'id_customer' => $customer->id_customer, 'id_vehicle' => $vehicle->id_vehicle,
                 'id_technician' => Technician::factory()->create()->id_technician, 'order_date' => now()->toDateString(), 'discount' => 0,
-                'details' => [['id_treatment' => $treatment->id_treatment, 'id_product' => $product->id_product, 'area' => $area, 'quantity' => 1, 'unit_price' => 500000, 'warranty_months' => 6]],
+                'details' => [['id_product' => $product->id_product, 'area' => $area, 'quantity' => 1, 'unit_price' => 500000, 'warranty_months' => 6]],
             ])->assertStatus(201)->json('id_order');
             $idInvoice = $this->postJson("/invoice/generate/{$idOrder}")->assertOk()->json('id_invoice');
             $this->postJson("/invoice/{$idInvoice}/payment", ['payment_date' => now()->toDateString(), 'amount' => 500000, 'payment_method' => 'CASH'])->assertOk();

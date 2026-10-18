@@ -43,7 +43,6 @@ class Product extends Model
     {
 
         $cek_duplikat_produk = Product::where('nama_produk', $request['nama_produk'])
-            ->where('brand', $request['brand'])
             ->count();
 
         return $cek_duplikat_produk;
@@ -56,7 +55,6 @@ class Product extends Model
         $request = array(
 
             'nama_produk'          => request('nama_produk'),
-            'brand'                => request('brand'),
             'id_product_type'      => request('id_product_type'),
             'kode_produk'          => request('kode_produk'),
             'harga_default'        => request('harga_default'),
@@ -75,17 +73,12 @@ class Product extends Model
 
         $datalama = Product::find($request['id_product']);
 
-        if (
-            $datalama['nama_produk'] == $request['nama_produk_detail']
-            &&
-            $datalama['brand'] == $request['brand_detail']
-        ) {
+        if ($datalama['nama_produk'] == $request['nama_produk_detail']) {
 
             return '0';
         } else {
 
             $cek_duplikat_produk_update = Product::where('nama_produk', $request['nama_produk_detail'])
-                ->where('brand', $request['brand_detail'])
                 ->count();
 
             return $cek_duplikat_produk_update;
@@ -99,7 +92,6 @@ class Product extends Model
         $request = array(
 
             'nama_produk'          => request('nama_produk_detail'),
-            'brand'                => request('brand_detail'),
             'id_product_type'      => request('id_product_type_detail'),
             'kode_produk'          => request('kode_produk_detail'),
             'harga_default'        => request('harga_default_detail'),

@@ -47,7 +47,6 @@ class SeedSampleProducts extends Command
                         'id_product_type' => $types[$typeKey]->id_product_type,
                         'kode_produk' => $code,
                         'nama_produk' => $name,
-                        'brand' => $brand,
                         'harga_default' => $price,
                         'is_warranty_eligible' => true,
                         'status' => 'enabled',

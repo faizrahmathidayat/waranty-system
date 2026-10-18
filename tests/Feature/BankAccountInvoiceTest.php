@@ -9,7 +9,6 @@ use App\Models\Login;
 use App\Models\Product;
 use App\Models\ProductType;
 use App\Models\Technician;
-use App\Models\Treatment;
 use App\Models\Vehicle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -32,7 +31,6 @@ class BankAccountInvoiceTest extends TestCase
         $vehicle = Vehicle::factory()->create(['id_customer' => $customer->id_customer]);
         $technician = Technician::factory()->create();
         $productType = ProductType::factory()->create(['order_category' => 'AUTOMOTIVE']);
-        $treatment = Treatment::factory()->create(['code' => 'COATING', 'order_category' => 'AUTOMOTIVE']);
         $product = Product::factory()->create([
             'id_product_type' => $productType->id_product_type,
             'status' => 'enabled',
@@ -41,14 +39,12 @@ class BankAccountInvoiceTest extends TestCase
 
         $idOrder = $this->postJson('/order/store', [
             'order_type' => 'AUTOMOTIVE',
-            'brand' => 'GLOSSPRO',
             'id_customer' => $customer->id_customer,
             'id_vehicle' => $vehicle->id_vehicle,
             'id_technician' => $technician->id_technician,
             'order_date' => now()->toDateString(),
             'discount' => 0,
             'details' => [[
-                'id_treatment' => $treatment->id_treatment,
                 'id_product' => $product->id_product,
                 'area' => 'Kaca Depan',
                 'quantity' => 1,

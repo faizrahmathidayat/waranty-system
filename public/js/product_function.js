@@ -33,11 +33,6 @@ $(function () {
                 data: 'nama_produk',
                 name: 'nama_produk'
             },
-
-            {
-                data: 'brand',
-                name: 'brand'
-            },
             {
                 data: 'product_type_name',
                 name: 'product_types.name'
@@ -109,11 +104,9 @@ $(document).ready(function () {
     $("#modal_tambah_product").on("hidden.bs.modal", function () {
 
         $("#nama_produk").val('');
-        $("#brand").val('');
         $("#keterangan").val('');
 
         $('#nama_produk').removeClass('is-invalid');
-        $('#brand').removeClass('is-invalid');
 
     });
 
@@ -128,7 +121,6 @@ $(document).ready(function () {
 function SimpanProduct() {
 
     var nama = $('#nama_produk').val();
-    var brand = $('#brand').val();
     var ket = $('#keterangan').val();
 
 
@@ -142,35 +134,17 @@ function SimpanProduct() {
 
     });
 
-    $("#brand").keyup(function () {
-
-        if ($(this).val().length > 0) {
-
-            $(this).removeClass('is-invalid');
-
-        }
-
-    });
 
     if (nama == '') {
 
         $('#nama_produk').addClass('is-invalid');
         $('#nama_produk').focus();
-        $('#nama_produk_notif').html('Nama Product tidak boleh kosong');
+        $('#nama_produk_notif').html('Nama Product Type tidak boleh kosong');
 
         return false;
 
     }
 
-    if (brand == '') {
-
-        $('#brand').addClass('is-invalid');
-        $('#brand').focus();
-        $('#brand_notif').html('Brand tidak boleh kosong');
-
-        return false;
-
-    }
 
     var btn = $('#simpan_product');
 
@@ -198,7 +172,7 @@ function SimpanProduct() {
                 Swal.fire({
 
                     icon: 'warning',
-                    title: 'Product sudah terdaftar',
+                    title: 'Product Type sudah terdaftar',
                     timer: 3000,
                     showConfirmButton: false
 
@@ -216,7 +190,7 @@ function SimpanProduct() {
 
                     icon: 'success',
                     title: 'Berhasil!',
-                    text: 'Product berhasil disimpan',
+                    text: 'Product Type berhasil disimpan',
                     timer: 2500,
                     showConfirmButton: false
 
@@ -225,7 +199,6 @@ function SimpanProduct() {
                     $('#tabel_product').DataTable().ajax.reload();
 
                     $('#nama_produk').val('');
-                    $('#brand').val('');
                     $('#keterangan').val('');
 
                     $('#nama_produk').focus();
@@ -242,7 +215,7 @@ function SimpanProduct() {
 
                 icon: 'error',
                 title: 'Gagal!',
-                text: 'Product gagal disimpan'
+                text: 'Product Type gagal disimpan'
 
             });
 
@@ -288,7 +261,6 @@ $('body').on('click', '.btn-detail-product', function () {
             $('[name="id_product_hapus"]').val(data.id_product);
 
             $('[name="nama_produk_detail"]').val(data.nama_produk);
-            $('[name="brand_detail"]').val(data.brand);
             $('[name="id_product_type_detail"]').val(data.id_product_type).trigger('change');
             $('[name="kode_produk_detail"]').val(data.kode_produk);
             $('[name="harga_default_detail"]').val(data.harga_default);
@@ -307,7 +279,6 @@ $('body').on('click', '.btn-detail-product', function () {
             $('#modal_detail_product').modal('show');
 
             $("#nama_produk_detail").attr("readonly", true);
-            $("#brand_detail").attr("readonly", true);
             $('#id_product_type_detail, #kode_produk_detail, #harga_default_detail, #is_warranty_eligible_detail').prop('disabled', true);
             $("#keterangan_detail").attr("readonly", true);
 
@@ -331,7 +302,6 @@ $('body').on('click', '#edit_product', function () {
     $('#edit_product').hide();
 
     $("#nama_produk_detail").attr("readonly", false);
-    $("#brand_detail").attr("readonly", false);
     $('#id_product_type_detail, #kode_produk_detail, #harga_default_detail, #is_warranty_eligible_detail').prop('disabled', false);
     $("#keterangan_detail").attr("readonly", false);
     $('input[name="status"]').prop('disabled', false);
@@ -351,12 +321,10 @@ $('body').on('click', '#close_modal_detail_product', function () {
     $('#edit_product').show();
 
     $("#nama_produk_detail").attr("readonly", true);
-    $("#brand_detail").attr("readonly", true);
     $('#id_product_type_detail, #kode_produk_detail, #harga_default_detail, #is_warranty_eligible_detail').prop('disabled', true);
     $("#keterangan_detail").attr("readonly", true);
 
     $('#nama_produk_detail').removeClass('is-invalid');
-    $('#brand_detail').removeClass('is-invalid');
 
 });
 
@@ -367,7 +335,6 @@ $('body').on('click', '#close_modal_detail_product', function () {
 function UpdateProduct() {
 
     var nama = $('#nama_produk_detail').val();
-    var brand = $('#brand_detail').val();
     var keterangan = $('#keterangan_detail').val();
 
     $("#nama_produk_detail").on('keyup', function () {
@@ -376,29 +343,16 @@ function UpdateProduct() {
         }
     });
 
-    $("#brand_detail").on('keyup', function () {
-        if ($(this).val().length > 0) {
-            $(this).removeClass('is-invalid');
-        }
-    });
 
     if (nama == '') {
 
         $('#nama_produk_detail').addClass('is-invalid');
         $('#nama_produk_detail').focus();
-        $('#nama_produk_detail_notif').html('Nama Product tidak boleh kosong');
+        $('#nama_produk_detail_notif').html('Nama Product Type tidak boleh kosong');
 
         return false;
     }
 
-    if (brand == '') {
-
-        $('#brand_detail').addClass('is-invalid');
-        $('#brand_detail').focus();
-        $('#brand_detail_notif').html('Brand tidak boleh kosong');
-
-        return false;
-    }
 
     var formUpdate = $('.form-edit-product').serialize();
 
@@ -417,7 +371,7 @@ function UpdateProduct() {
                 Swal.fire({
 
                     icon: 'warning',
-                    title: 'Product sudah terdaftar',
+                    title: 'Product Type sudah terdaftar',
                     timer: 3000,
                     showConfirmButton: false
 
@@ -431,7 +385,7 @@ function UpdateProduct() {
 
                     icon: 'success',
                     title: 'Berhasil!',
-                    text: 'Product berhasil diupdate',
+                    text: 'Product Type berhasil diupdate',
                     timer: 2500,
                     showConfirmButton: false
 
@@ -452,7 +406,7 @@ function UpdateProduct() {
 
                 icon: 'error',
                 title: 'Gagal!',
-                text: 'Product gagal diupdate'
+                text: 'Product Type gagal diupdate'
 
             });
 
@@ -470,7 +424,7 @@ function HapusProduct() {
 
     Swal.fire({
 
-        title: 'Hapus Product',
+        title: 'Hapus Product Type',
         text: "Yakin ingin menghapus product ini?",
         icon: 'warning',
 
@@ -504,7 +458,7 @@ function HapusProduct() {
 
                             icon: 'warning',
                             title: 'Gagal',
-                            text: 'Product sudah digunakan pada data warranty sehingga tidak dapat dihapus.'
+                            text: 'Product Type sudah digunakan pada data warranty sehingga tidak dapat dihapus.'
 
                         });
 
@@ -514,7 +468,7 @@ function HapusProduct() {
 
                             icon: 'success',
                             title: 'Berhasil',
-                            text: 'Product berhasil dihapus.',
+                            text: 'Product Type berhasil dihapus.',
                             timer: 2500,
                             showConfirmButton: false
 
@@ -533,7 +487,7 @@ function HapusProduct() {
 
                         icon: 'error',
                         title: 'Gagal!',
-                        text: 'Product gagal dihapus.'
+                        text: 'Product Type gagal dihapus.'
 
                     });
 

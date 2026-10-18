@@ -3,7 +3,7 @@
         <div class="modal-content">
 
             <div class="modal-header bg-info">
-                <h5 class="modal-title" id="staticBackdropLabel"><i class="nav-icon fas fa-box-open"></i> Tambah Product</h5>
+                <h5 class="modal-title" id="staticBackdropLabel"><i class="nav-icon fas fa-box-open"></i> Tambah Product Type</h5>
 
                 <button type="button"
                     class="close"
@@ -29,7 +29,7 @@
                         <tr>
 
                             <td style="font-size:15px;font-weight:bold;">
-                                Nama Product
+                                Nama Product Type
                             </td>
 
                             <td>
@@ -52,34 +52,11 @@
                         <tr>
 
                             <td style="font-size:15px;font-weight:bold;">
-                                Brand
+                                Product
                             </td>
-
-                            <td>
-
-                                <input type="text"
-                                    id="brand"
-                                    name="brand"
-                                    class="form-control"
-                                    autocomplete="off">
-
-                                <div id="brand_notif"
-                                    class="invalid-feedback">
-
-                                </div>
-
-                            </td>
-
+                            <td><select id="id_product_type" name="id_product_type" class="form-control select2" style="width:100%"><option value="">-- Pilih Product --</option>@foreach($productTypes as $type)<option value="{{ $type->id_product_type }}">{{ $type->name }}</option>@endforeach</select></td>
                         </tr>
-
-                        <tr>
-
-                            <td style="font-size:15px;font-weight:bold;">
-                                Product Type
-                            </td>
-                            <td><select id="id_product_type" name="id_product_type" class="form-control select2" style="width:100%"><option value="">-- Pilih Product Type --</option>@foreach($productTypes as $type)<option value="{{ $type->id_product_type }}">{{ $type->name }}</option>@endforeach</select></td>
-                        </tr>
-                        <tr><td style="font-size:15px;font-weight:bold;">Kode Product</td><td><input type="text" id="kode_produk" name="kode_produk" class="form-control"></td></tr>
+                        <tr><td style="font-size:15px;font-weight:bold;">Kode Product Type</td><td><input type="text" id="kode_produk" name="kode_produk" class="form-control"></td></tr>
                         <tr><td style="font-size:15px;font-weight:bold;">Harga Default</td><td><input type="number" min="0" step="0.01" id="harga_default" name="harga_default" class="form-control"></td></tr>
                         <tr><td style="font-size:15px;font-weight:bold;">Warranty Eligible</td><td><div class="custom-control custom-switch"><input type="checkbox" class="custom-control-input" id="is_warranty_eligible" name="is_warranty_eligible" value="1" checked><label class="custom-control-label" for="is_warranty_eligible">Eligible</label></div></td></tr>
                         <tr>

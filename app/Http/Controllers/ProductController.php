@@ -18,8 +18,8 @@ class ProductController extends Controller
         }
 
         return view('product.index', [
-            'title'     => 'Product',
-            'navbar'    => 'Product',
+            'title'     => 'Product Type',
+            'navbar'    => 'Product Type',
             'productTypes' => ProductType::where('is_active', true)->orderBy('name')->get()
         ]);
     }

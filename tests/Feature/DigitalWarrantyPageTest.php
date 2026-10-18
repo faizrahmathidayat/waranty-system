@@ -11,7 +11,6 @@ use App\Models\Product;
 use App\Models\ProductType;
 use App\Models\ProductVariant;
 use App\Models\Technician;
-use App\Models\Treatment;
 use App\Models\Vehicle;
 use App\Models\Warranty;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -39,7 +38,6 @@ class DigitalWarrantyPageTest extends TestCase
     private function warranty(array $orderFields, array $details, int $warrantyMonths = 6): string
     {
         $response = $this->postJson('/order/store', array_merge([
-            'brand' => 'LEXENT',
             'id_customer' => $this->customer->id_customer,
             'id_technician' => $this->technician->id_technician,
             'order_date' => now()->toDateString(),
@@ -60,12 +58,11 @@ class DigitalWarrantyPageTest extends TestCase
     {
         $vehicle = Vehicle::factory()->create(['id_customer' => $this->customer->id_customer, 'no_polisi' => 'B 1234 ABC', 'merk' => 'Toyota', 'model' => 'Fortuner']);
         $type = ProductType::factory()->create(['name' => 'Kaca Film', 'order_category' => 'AUTOMOTIVE']);
-        $treatment = Treatment::factory()->create(['code' => 'COATING', 'order_category' => 'AUTOMOTIVE']);
-        $product = Product::factory()->create(['nama_produk' => 'LEXENT HT', 'brand' => 'LEXENT', 'id_product_type' => $type->id_product_type, 'status' => 'enabled', 'is_warranty_eligible' => true]);
+        $product = Product::factory()->create(['nama_produk' => 'LEXENT HT', 'id_product_type' => $type->id_product_type, 'status' => 'enabled', 'is_warranty_eligible' => true]);
 
         $kode = $this->warranty(
             ['order_type' => 'AUTOMOTIVE', 'id_vehicle' => $vehicle->id_vehicle],
-            array_map(fn ($area) => ['id_treatment' => $treatment->id_treatment, 'id_product' => $product->id_product, 'area' => $area], $areas)
+            array_map(fn ($area) => ['id_product' => $product->id_product, 'area' => $area], $areas)
         );
 
         if ($guest) auth()->logout(); // the public page is for customers: no login
@@ -77,11 +74,10 @@ class DigitalWarrantyPageTest extends TestCase
     {
         $building = Building::factory()->create(['id_customer' => $this->customer->id_customer, 'nama_bangunan' => 'Gedung Mawar', 'alamat' => 'Jl. Anggrek 5']);
         $type = ProductType::factory()->create(['name' => 'Kaca Film Gedung', 'order_category' => 'BUILDING']);
-        $treatment = Treatment::factory()->create(['code' => 'TEMBOK', 'order_category' => 'BUILDING']);
-        $product = Product::factory()->create(['nama_produk' => 'High Perform', 'brand' => 'LEXENT', 'id_product_type' => $type->id_product_type, 'status' => 'enabled', 'is_warranty_eligible' => true]);
+        $product = Product::factory()->create(['nama_produk' => 'High Perform', 'id_product_type' => $type->id_product_type, 'status' => 'enabled', 'is_warranty_eligible' => true]);
         $variant = ProductVariant::create(['id_product' => $product->id_product, 'name' => 'HT 15', 'value' => '15%', 'is_active' => true]);
 
-        $item = fn ($area, $luas) => ['id_treatment' => $treatment->id_treatment, 'id_product' => $product->id_product, 'id_product_variant' => $variant->id_product_variant, 'area' => $area, 'total_luas' => $luas, 'unit' => 'm2'];
+        $item = fn ($area, $luas) => ['id_product' => $product->id_product, 'id_product_variant' => $variant->id_product_variant, 'area' => $area, 'total_luas' => $luas, 'unit' => 'm2'];
 
         $kode = $this->warranty(['order_type' => 'BUILDING', 'id_building' => $building->id_building], [$item('Lt 1', 11), $item('Lt 2', 12.5)]);
         auth()->logout();
@@ -159,11 +155,10 @@ class DigitalWarrantyPageTest extends TestCase
     {
         $building = Building::factory()->create(['id_customer' => $this->customer->id_customer]);
         $type = ProductType::factory()->create(['order_category' => 'BUILDING']);
-        $treatment = Treatment::factory()->create(['code' => 'TEMBOK', 'order_category' => 'BUILDING']);
         $product = Product::factory()->create(['nama_produk' => 'Tanpa Varian', 'id_product_type' => $type->id_product_type, 'status' => 'enabled', 'is_warranty_eligible' => true]);
 
         $kode = $this->warranty(['order_type' => 'BUILDING', 'id_building' => $building->id_building], [
-            ['id_treatment' => $treatment->id_treatment, 'id_product' => $product->id_product, 'area' => 'Lt 1', 'total_luas' => 8, 'unit' => 'm2'],
+            ['id_product' => $product->id_product, 'area' => 'Lt 1', 'total_luas' => 8, 'unit' => 'm2'],
         ]);
         auth()->logout();
 

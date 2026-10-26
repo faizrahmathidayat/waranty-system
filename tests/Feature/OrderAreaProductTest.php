@@ -127,7 +127,7 @@ class OrderAreaProductTest extends TestCase
             ->assertSee('lexent-logo.png', false)->assertSee('lexent-watermark.png', false)
             ->assertSee('CONTACT INFORMATION')->assertSee('Lexentindonesia.com')
             ->assertSee('BUILDING WINDOWFILM', false)->assertSee('PAINT PROTECTION FILM')
-            ->assertSee('Ketentuan Penawaran:')->assertSee('Management LEXENT');
+            ->assertSee('KETENTUAN GARANSI DAN LAYANAN')->assertSee('Management LEXENT');
         $this->assertFileExists(public_path('images/lexent-watermark.png'));
     }
 
@@ -139,7 +139,7 @@ class OrderAreaProductTest extends TestCase
         $this->get("/invoice/print/{$idInvoice}")->assertOk()
             ->assertDontSee('logo.png', false)->assertDontSee('lexent-watermark.png', false)
             ->assertDontSee('CONTACT INFORMATION')->assertDontSee('BUILDING WINDOWFILM', false)
-            ->assertSee('Ketentuan Penawaran:')->assertSee('Management GlossPro');
+            ->assertSee('KETENTUAN GARANSI DAN LAYANAN')->assertSee('Management GlossPro');
     }
 
     public function test_item_discount_comes_off_the_unit_price_before_multiplying(): void

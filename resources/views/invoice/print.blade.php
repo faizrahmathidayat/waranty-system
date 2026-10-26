@@ -21,7 +21,7 @@ th,td{border:1px solid #555;padding:7px;text-align:left}
 .lx-contact b{display:block;color:#16233b;font-family:Cambria,Georgia,serif;font-size:13px;letter-spacing:.2px}
 .terms-page{page-break-before:always;break-before:page}
 .terms{page-break-inside:avoid;font-size:13px;line-height:1.45}
-.terms ul{margin:4px 0 12px;padding-left:18px}
+.terms ol{margin:6px 0 14px;padding-left:20px}.terms li{margin-bottom:5px}
 .sign{margin-top:26px;text-align:right;page-break-inside:avoid;font-size:13px}
 .sign img{display:block;height:22px;margin:12px 0 12px auto}
 .lx-wm{position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden;z-index:-1;pointer-events:none}.lx-wm img{position:absolute;right:-2%;bottom:14%;width:50%}
@@ -53,13 +53,17 @@ th,td{border:1px solid #555;padding:7px;text-align:left}
 @if($bankAccounts->isNotEmpty())<div style="margin-top:24px"><b>Pembayaran melalui transfer:</b><br>@foreach($bankAccounts as $account){{ $account->bank_name }} — {{ $account->account_number }} a.n. {{ $account->account_holder }}<br>@endforeach</div>@endif
 <div class="terms-page">
 <div class="terms">
-    <b>Ketentuan Penawaran:</b>
-    <ul>
-        <li>Harga tercantum dalam Rupiah per meter persegi (m²).</li>
-        <li>Total biaya dihitung berdasarkan luas kaca aktual hasil pengukuran/survei di lokasi.</li>
-        <li>Biaya tambahan, apabila ada, akan dikonfirmasikan terlebih dahulu sebelum pekerjaan dilakukan.</li>
-        <li>Garansi mengikuti ketentuan garansi produk dan pemasangan yang berlaku untuk masing-masing tipe.</li>
-    </ul>
+    <b>KETENTUAN GARANSI DAN LAYANAN</b>
+    <ol>
+        <li>Garansi berlaku sesuai jenis produk atau layanan, masa garansi, dan ketentuan yang tercantum pada invoice atau kartu garansi resmi.</li>
+        <li>Garansi berlaku sejak tanggal pemasangan atau tanggal yang ditetapkan pada dokumen garansi.</li>
+        <li>Garansi hanya berlaku untuk produk dan pekerjaan yang tercantum pada invoice serta tidak dapat dialihkan kepada pihak lain tanpa persetujuan perusahaan.</li>
+        <li>Garansi mencakup kerusakan atau ketidaksesuaian yang terbukti disebabkan oleh cacat produk atau kesalahan pemasangan, sepanjang termasuk dalam cakupan garansi layanan terkait.</li>
+        <li>Garansi tidak berlaku untuk kerusakan akibat kelalaian pengguna, kecelakaan, benturan, bencana alam, penggunaan yang tidak sesuai, perawatan yang salah, atau tindakan pihak lain yang berada di luar tanggung jawab perusahaan.</li>
+        <li>Klaim garansi wajib disertai invoice atau bukti pembelian yang sah. Perusahaan berhak melakukan pemeriksaan sebelum menentukan penyelesaian klaim.</li>
+        <li>Perbaikan atau penggantian yang disetujui akan dilakukan sesuai cakupan dan ketentuan garansi produk atau layanan terkait.</li>
+        <li>Hal-hal yang tidak tercantum dalam ketentuan ini akan mengikuti kebijakan garansi resmi perusahaan dan ketentuan hukum yang berlaku.</li>
+    </ol>
     Demikian surat penawaran ini kami sampaikan. Besar harapan kami dapat menjalin kerja sama yang baik dengan Bapak/Ibu. Atas perhatian dan kesempatan yang diberikan, kami ucapkan terima kasih.
 </div>
 <div class="sign">Hormat kami,@if($isLexent)<img src="{{ $lexentLogo }}" alt="LEXENT">@else<br><br><br>@endif{{ $brandLabel ? 'Management '.$brandLabel : '' }}</div>

@@ -38,6 +38,7 @@ class DigitalWarrantyPageTest extends TestCase
     private function warranty(array $orderFields, array $details, int $warrantyMonths = 6): string
     {
         $response = $this->postJson('/order/store', array_merge([
+            'brand' => 'LEXENT',
             'id_customer' => $this->customer->id_customer,
             'id_technician' => $this->technician->id_technician,
             'order_date' => now()->toDateString(),

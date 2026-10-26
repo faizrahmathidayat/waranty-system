@@ -59,7 +59,7 @@ class OrderAreaProductTest extends TestCase
     private function payload(array $details, array $overrides = []): array
     {
         return array_merge([
-            'order_type' => 'AUTOMOTIVE',
+            'order_type' => 'AUTOMOTIVE', 'brand' => 'LEXENT',
             'id_customer' => $this->customer->id_customer,
             'id_vehicle' => $this->vehicle->id_vehicle,
             'id_technician' => $this->technician->id_technician,
@@ -95,14 +95,98 @@ class OrderAreaProductTest extends TestCase
         $this->get('/treatment')->assertNotFound();
     }
 
-    public function test_brand_is_no_longer_part_of_the_order_form_or_lists(): void
+    public function test_brand_is_part_of_the_order_form_and_saved_with_the_order(): void
     {
-        $this->get('/order/create')->assertOk()->assertDontSee('Pilih Brand', false)->assertDontSee('name="brand"', false);
+        $this->get('/order/create')->assertOk()->assertSee('Pilih Brand', false)->assertSee('name="brand"', false)->assertSee('GlossPro');
         $this->get('/product')->assertOk()->assertDontSee('name="brand"', false)->assertDontSee('<th>Brand</th>', false);
 
         $id = $this->postJson('/order/store', $this->payload([$this->item()]))->assertStatus(201)->json('id_order');
-        $this->assertNull(Order::findOrFail($id)->brand);
+        $this->assertSame('LEXENT', Order::findOrFail($id)->brand);
         $this->assertSame('Produk A', Order::findOrFail($id)->details()->firstOrFail()->product_name_snapshot);
+
+        $this->get("/order/edit/{$id}")->assertOk()->assertSee('value="LEXENT" selected', false);
+        $this->postJson("/order/update/{$id}", $this->payload([$this->item()], ['brand' => 'GLOSSPRO']))->assertOk();
+        $this->assertSame('GLOSSPRO', Order::findOrFail($id)->brand);
+        $this->getJson('/order/json')->assertOk()->assertJsonPath('data.0.brand', 'GLOSSPRO');
+        $this->get("/order/show/{$id}")->assertOk()->assertSee('GlossPro');
+    }
+
+    public function test_invoice_list_shows_the_order_brand(): void
+    {
+        $this->postJson("/invoice/generate/".$this->postJson('/order/store', $this->payload([$this->item()], ['brand' => 'GLOSSPRO']))->json('id_order'))->assertOk();
+
+        $this->getJson('/invoice/json')->assertOk()->assertJsonPath('data.0.brand', 'GLOSSPRO');
+    }
+
+    public function test_lexent_invoice_print_has_letterhead_footer_and_watermark(): void
+    {
+        $id = $this->postJson('/order/store', $this->payload([$this->item()], ['brand' => 'LEXENT']))->json('id_order');
+        $idInvoice = $this->postJson("/invoice/generate/{$id}")->assertOk()->json('id_invoice');
+
+        $this->get("/invoice/print/{$idInvoice}")->assertOk()
+            ->assertSee('lexent-logo.png', false)->assertSee('lexent-watermark.png', false)
+            ->assertSee('CONTACT INFORMATION')->assertSee('Lexentindonesia.com')
+            ->assertSee('BUILDING WINDOWFILM', false)->assertSee('PAINT PROTECTION FILM')
+            ->assertSee('Ketentuan Penawaran:')->assertSee('Management LEXENT');
+        $this->assertFileExists(public_path('images/lexent-watermark.png'));
+    }
+
+    public function test_glosspro_invoice_print_has_no_lexent_letterhead_but_keeps_the_terms(): void
+    {
+        $id = $this->postJson('/order/store', $this->payload([$this->item()], ['brand' => 'GLOSSPRO']))->json('id_order');
+        $idInvoice = $this->postJson("/invoice/generate/{$id}")->assertOk()->json('id_invoice');
+
+        $this->get("/invoice/print/{$idInvoice}")->assertOk()
+            ->assertDontSee('logo.png', false)->assertDontSee('lexent-watermark.png', false)
+            ->assertDontSee('CONTACT INFORMATION')->assertDontSee('BUILDING WINDOWFILM', false)
+            ->assertSee('Ketentuan Penawaran:')->assertSee('Management GlossPro');
+    }
+
+    public function test_item_discount_comes_off_the_unit_price_before_multiplying(): void
+    {
+        $building = Building::factory()->create(['id_customer' => $this->customer->id_customer]);
+        $buildingType = ProductType::factory()->create(['order_category' => 'BUILDING']);
+        $product = Product::factory()->create(['id_product_type' => $buildingType->id_product_type, 'status' => 'enabled', 'is_warranty_eligible' => false]);
+
+        $id = $this->postJson('/order/store', [
+            'order_type' => 'BUILDING', 'brand' => 'LEXENT',
+            'id_customer' => $this->customer->id_customer, 'id_building' => $building->id_building,
+            'id_technician' => $this->technician->id_technician, 'order_date' => now()->toDateString(), 'discount' => 0,
+            'details' => [[
+                'id_product' => $product->id_product,
+                'area' => 'lt 1', 'total_luas' => 12, 'quantity' => 1, 'unit' => 'm2', 'unit_price' => 2830000, 'discount' => 83000,
+            ]],
+        ])->assertStatus(201)->json('id_order');
+
+        $detail = Order::findOrFail($id)->details()->firstOrFail();
+        $this->assertEquals(83000, $detail->discount);
+        $this->assertEquals((2830000 - 83000) * 12, $detail->subtotal);
+        $this->assertEquals(32964000, Order::findOrFail($id)->grand_total);
+    }
+
+    public function test_automotive_item_discount_is_per_unit_and_percent_applies_to_the_unit_price(): void
+    {
+        $id = $this->postJson('/order/store', $this->payload([
+            $this->item(['area' => 'Kaca Depan', 'quantity' => 3, 'unit_price' => 100000, 'discount' => 10000]),
+            $this->item(['area' => 'Belakang', 'quantity' => 2, 'unit_price' => 100000, 'discount' => 10, 'discount_type' => 'PERCENT']),
+        ]))->assertStatus(201)->json('id_order');
+
+        $details = Order::findOrFail($id)->details()->orderBy('id_order_detail')->get();
+        $this->assertEquals(270000, $details[0]->subtotal);
+        $this->assertEquals(10000, $details[1]->discount);
+        $this->assertEquals(180000, $details[1]->subtotal);
+
+        $this->postJson('/order/store', $this->payload([$this->item(['unit_price' => 100000, 'discount' => 100001])]))
+            ->assertStatus(422)->assertJsonValidationErrors('details.0.discount');
+    }
+
+    public function test_brand_is_required_and_must_be_valid(): void
+    {
+        foreach (['', 'OTHER'] as $brand) {
+            $this->postJson('/order/store', $this->payload([$this->item()], ['brand' => $brand]))
+                ->assertStatus(422)->assertJsonValidationErrors('brand');
+        }
+        $this->assertSame(0, Order::count());
     }
 
     public function test_automotive_area_must_be_one_of_the_options(): void
@@ -122,7 +206,7 @@ class OrderAreaProductTest extends TestCase
         $product = Product::factory()->create(['id_product_type' => $buildingType->id_product_type, 'status' => 'enabled', 'is_warranty_eligible' => false]);
 
         $this->postJson('/order/store', [
-            'order_type' => 'BUILDING',
+            'order_type' => 'BUILDING', 'brand' => 'LEXENT',
             'id_customer' => $this->customer->id_customer, 'id_building' => $building->id_building,
             'id_technician' => $this->technician->id_technician, 'order_date' => now()->toDateString(), 'discount' => 0,
             'details' => [[

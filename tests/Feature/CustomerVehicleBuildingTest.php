@@ -153,7 +153,7 @@ class CustomerVehicleBuildingTest extends TestCase
         Order::create([
             'order_number' => 'ORDTEST0001',
             'id_customer' => $customer->id_customer,
-            'order_type' => 'AUTOMOTIVE',
+            'order_type' => 'AUTOMOTIVE', 'brand' => 'LEXENT',
             'id_vehicle' => $vehicleWithOrder->id_vehicle,
             'id_technician' => $technician->id_technician,
             'order_date' => now()->toDateString(),

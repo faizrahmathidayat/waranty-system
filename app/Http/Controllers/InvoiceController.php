@@ -23,7 +23,7 @@ class InvoiceController extends Controller
     {
         $this->auth();
         $query = Invoice::query()->join('orders', 'orders.id_order', '=', 'invoices.id_order')->join('customers', 'customers.id_customer', '=', 'invoices.id_customer')
-            ->select('invoices.*', 'orders.order_number', 'orders.order_type', 'customers.nama_customer');
+            ->select('invoices.*', 'orders.order_number', 'orders.order_type', 'orders.brand', 'customers.nama_customer');
         if ($request->filled('status')) $query->where('invoices.status', $request->status);
         if ($request->filled('id_customer')) $query->where('invoices.id_customer', $request->id_customer);
         if ($request->filled('order_type')) $query->where('orders.order_type', $request->order_type);

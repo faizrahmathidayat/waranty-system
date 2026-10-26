@@ -183,6 +183,7 @@ class OrderController extends Controller
     {
         $header = Validator::make($request->all(), [
             'order_type' => 'required|in:AUTOMOTIVE,BUILDING',
+            'brand' => 'required|in:'.implode(',', array_keys(Order::BRANDS)),
             'id_customer' => 'required|exists:customers,id_customer',
             'id_vehicle' => 'nullable|exists:vehicles,id_vehicle',
             'id_building' => 'nullable|exists:buildings,id_building',
@@ -192,6 +193,8 @@ class OrderController extends Controller
             'notes' => 'nullable|string',
             'details' => 'required|array|min:1',
         ], [
+            'brand.required' => 'Brand harus dipilih terlebih dahulu.',
+            'brand.in' => 'Brand tidak valid.',
             'id_customer.required' => 'Customer harus diisi terlebih dahulu.',
             'id_vehicle.required' => 'Vehicle harus diisi terlebih dahulu.',
             'id_building.required' => 'Building harus diisi terlebih dahulu.',
@@ -225,7 +228,7 @@ class OrderController extends Controller
         for ($attempt = 0; $attempt < 3; $attempt++) {
             try {
                 return DB::transaction(function () use ($existing, $header, $details, $subtotal, $discount) {
-                    $attributes = ['id_customer' => $header['id_customer'], 'order_type' => $header['order_type'], 'id_vehicle' => $header['order_type'] === 'AUTOMOTIVE' ? $header['id_vehicle'] : null, 'id_building' => $header['order_type'] === 'BUILDING' ? $header['id_building'] : null, 'id_technician' => $header['id_technician'], 'order_date' => $header['order_date'], 'subtotal' => $subtotal, 'discount' => $discount, 'grand_total' => $subtotal - $discount, 'notes' => $header['notes'] ?? null, 'updated_by' => Auth::id()];
+                    $attributes = ['id_customer' => $header['id_customer'], 'order_type' => $header['order_type'], 'brand' => $header['brand'], 'id_vehicle' => $header['order_type'] === 'AUTOMOTIVE' ? $header['id_vehicle'] : null, 'id_building' => $header['order_type'] === 'BUILDING' ? $header['id_building'] : null, 'id_technician' => $header['id_technician'], 'order_date' => $header['order_date'], 'subtotal' => $subtotal, 'discount' => $discount, 'grand_total' => $subtotal - $discount, 'notes' => $header['notes'] ?? null, 'updated_by' => Auth::id()];
                     if ($existing) {
                         $order = Order::lockForUpdate()->findOrFail($existing->id_order);
                         $order->update($attributes);
@@ -290,16 +293,17 @@ class OrderController extends Controller
             $totalLuas = $orderType === 'BUILDING' ? round((float) $data['total_luas'], 2) : null;
             $luasPerItem = $orderType === 'BUILDING' ? round($totalLuas / $quantity, 2) : null;
             $unit = ($data['unit'] ?? null) ?: ($orderType === 'BUILDING' ? 'm2' : 'unit');
-            // Building items are billed per m² (total luas x price); Automotive
-            // and PPF items are billed per item quantity.
-            $gross = round(($orderType === 'BUILDING' ? $totalLuas : $quantity) * $unitPrice, 2);
+            // The discount comes off the unit price first (stored per unit/m²);
+            // the subtotal is then (price - discount) x total luas (Building) or
+            // x quantity (Automotive and PPF).
             if ($discountType === 'PERCENT' && $discountValue > 100) {
                 throw ValidationException::withMessages(["details.$index.discount" => 'Discount persentase tidak boleh lebih dari 100%.']);
             }
             $discount = $discountType === 'PERCENT'
-                ? round($gross * $discountValue / 100, 2)
+                ? round($unitPrice * $discountValue / 100, 2)
                 : $discountValue;
-            if ($discount > $gross) throw ValidationException::withMessages(["details.$index.discount" => 'Discount item tidak boleh melebihi gross item.']);
+            if ($discount > $unitPrice) throw ValidationException::withMessages(["details.$index.discount" => 'Discount tidak boleh melebihi harga.']);
+            $subtotal = round(($orderType === 'BUILDING' ? $totalLuas : $quantity) * ($unitPrice - $discount), 2);
             $key = implode('|', [mb_strtolower($area), $product->id_product, optional($variant)->id_product_variant]);
             if (isset($duplicates[$key])) throw ValidationException::withMessages(["details.$index" => 'Item dengan area, product, dan variant yang sama sudah ada.']);
             $duplicates[$key] = true;
@@ -316,7 +320,7 @@ class OrderController extends Controller
                 $warrantyMonths = (int) $data['warranty_months'];
                 $expiredSnapshot = Carbon::parse($orderDate)->addMonths($warrantyMonths)->toDateString();
             }
-            $result[] = ['id_product' => $product->id_product, 'id_product_variant' => optional($variant)->id_product_variant, 'area' => $area ?: null, 'item_type' => $orderType, 'quantity' => $quantity, 'unit' => $unit, 'panjang' => $panjang, 'lebar' => $lebar, 'luas_per_item' => $luasPerItem, 'total_luas' => $totalLuas, 'unit_price' => $unitPrice, 'discount' => $discount, 'subtotal' => $gross - $discount, 'warranty_eligible' => $warrantyEligible, 'warranty_months_snapshot' => $warrantyMonths, 'tanggal_expired_snapshot' => $expiredSnapshot, 'service_status' => 'PENDING', 'product_name_snapshot' => $product->nama_produk, 'variant_name_snapshot' => optional($variant)->name, 'notes' => null];
+            $result[] = ['id_product' => $product->id_product, 'id_product_variant' => optional($variant)->id_product_variant, 'area' => $area ?: null, 'item_type' => $orderType, 'quantity' => $quantity, 'unit' => $unit, 'panjang' => $panjang, 'lebar' => $lebar, 'luas_per_item' => $luasPerItem, 'total_luas' => $totalLuas, 'unit_price' => $unitPrice, 'discount' => $discount, 'subtotal' => $subtotal, 'warranty_eligible' => $warrantyEligible, 'warranty_months_snapshot' => $warrantyMonths, 'tanggal_expired_snapshot' => $expiredSnapshot, 'service_status' => 'PENDING', 'product_name_snapshot' => $product->nama_produk, 'variant_name_snapshot' => optional($variant)->name, 'notes' => null];
         }
         return $result;
     }

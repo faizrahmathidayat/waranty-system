@@ -90,7 +90,7 @@ class WarrantyCodeFormatTest extends TestCase
         foreach (['Kaca Depan', 'Belakang'] as $area) {
             $vehicle = Vehicle::factory()->create(['id_customer' => $customer->id_customer]);
             $idOrder = $this->postJson('/order/store', [
-                'order_type' => 'AUTOMOTIVE', 'id_customer' => $customer->id_customer, 'id_vehicle' => $vehicle->id_vehicle,
+                'order_type' => 'AUTOMOTIVE', 'brand' => 'LEXENT', 'id_customer' => $customer->id_customer, 'id_vehicle' => $vehicle->id_vehicle,
                 'id_technician' => Technician::factory()->create()->id_technician, 'order_date' => now()->toDateString(), 'discount' => 0,
                 'details' => [['id_product' => $product->id_product, 'area' => $area, 'quantity' => 1, 'unit_price' => 500000, 'warranty_months' => 6]],
             ])->assertStatus(201)->json('id_order');

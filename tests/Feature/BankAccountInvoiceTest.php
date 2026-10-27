@@ -43,12 +43,12 @@ class BankAccountInvoiceTest extends TestCase
             'id_vehicle' => $vehicle->id_vehicle,
             'id_technician' => $technician->id_technician,
             'order_date' => now()->toDateString(),
-            'discount' => 0,
+            'subtotal' => 500000, 'discount' => 0,
             'details' => [[
+                'id_product_type' => $productType->id_product_type,
                 'id_product' => $product->id_product,
                 'area' => 'Kaca Depan',
                 'quantity' => 1,
-                'unit_price' => 500000,
                 'warranty_months' => 6,
             ]],
         ])->assertStatus(201)->json('id_order');

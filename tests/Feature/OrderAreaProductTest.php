@@ -49,10 +49,10 @@ class OrderAreaProductTest extends TestCase
     private function item(array $overrides = []): array
     {
         return array_merge([
+            'id_product_type' => $this->autoType->id_product_type,
             'id_product' => $this->productA->id_product,
             'area' => 'Kaca Depan',
             'quantity' => 1,
-            'unit_price' => 100000,
         ], $overrides);
     }
 
@@ -64,6 +64,7 @@ class OrderAreaProductTest extends TestCase
             'id_vehicle' => $this->vehicle->id_vehicle,
             'id_technician' => $this->technician->id_technician,
             'order_date' => now()->toDateString(),
+            'subtotal' => 100000,
             'discount' => 0,
             'details' => $details,
         ], $overrides);
@@ -127,7 +128,7 @@ class OrderAreaProductTest extends TestCase
             ->assertSee('lexent-logo.png', false)->assertSee('lexent-watermark.png', false)
             ->assertSee('CONTACT INFORMATION')->assertSee('Lexentindonesia.com')
             ->assertSee('BUILDING WINDOWFILM', false)->assertSee('PAINT PROTECTION FILM')
-            ->assertSee('KETENTUAN GARANSI DAN LAYANAN')->assertSee('Management LEXENT');
+            ->assertSee('KETENTUAN GARANSI DAN LAYANAN')->assertDontSee('Hormat kami');
         $this->assertFileExists(public_path('images/lexent-watermark.png'));
     }
 
@@ -139,7 +140,7 @@ class OrderAreaProductTest extends TestCase
         $this->get("/invoice/print/{$idInvoice}")->assertOk()
             ->assertDontSee('logo.png', false)->assertDontSee('lexent-watermark.png', false)
             ->assertDontSee('CONTACT INFORMATION')->assertDontSee('BUILDING WINDOWFILM', false)
-            ->assertSee('KETENTUAN GARANSI DAN LAYANAN')->assertSee('Management GlossPro');
+            ->assertSee('KETENTUAN GARANSI DAN LAYANAN')->assertDontSee('Hormat kami');
     }
 
     public function test_item_discount_comes_off_the_unit_price_before_multiplying(): void
@@ -164,20 +165,89 @@ class OrderAreaProductTest extends TestCase
         $this->assertEquals(32964000, Order::findOrFail($id)->grand_total);
     }
 
-    public function test_automotive_item_discount_is_per_unit_and_percent_applies_to_the_unit_price(): void
+    public function test_automotive_items_carry_no_price_and_the_typed_subtotal_is_the_order_total(): void
     {
         $id = $this->postJson('/order/store', $this->payload([
-            $this->item(['area' => 'Kaca Depan', 'quantity' => 3, 'unit_price' => 100000, 'discount' => 10000]),
-            $this->item(['area' => 'Belakang', 'quantity' => 2, 'unit_price' => 100000, 'discount' => 10, 'discount_type' => 'PERCENT']),
-        ]))->assertStatus(201)->json('id_order');
+            $this->item(['area' => 'Kaca Depan', 'quantity' => 3, 'unit_price' => 999, 'discount' => 50]),
+            $this->item(['area' => 'Belakang']),
+        ], ['subtotal' => 1250000, 'discount' => 250000]))->assertStatus(201)->json('id_order');
 
-        $details = Order::findOrFail($id)->details()->orderBy('id_order_detail')->get();
-        $this->assertEquals(270000, $details[0]->subtotal);
-        $this->assertEquals(10000, $details[1]->discount);
-        $this->assertEquals(180000, $details[1]->subtotal);
+        $order = Order::findOrFail($id);
+        $this->assertEquals(1250000, $order->subtotal);
+        $this->assertEquals(1000000, $order->grand_total);
+        foreach ($order->details as $detail) {
+            $this->assertEquals(0, $detail->unit_price);
+            $this->assertEquals(0, $detail->discount);
+            $this->assertEquals(0, $detail->subtotal);
+        }
+        $this->get("/order/edit/{$id}")->assertOk();
+    }
 
-        $this->postJson('/order/store', $this->payload([$this->item(['unit_price' => 100000, 'discount' => 100001])]))
-            ->assertStatus(422)->assertJsonValidationErrors('details.0.discount');
+    public function test_automotive_subtotal_is_required_and_the_discount_cannot_exceed_it(): void
+    {
+        $this->postJson('/order/store', $this->payload([$this->item()], ['subtotal' => '']))->assertStatus(422)->assertJsonValidationErrors('subtotal');
+        $this->postJson('/order/store', $this->payload([$this->item()], ['subtotal' => -1]))->assertStatus(422)->assertJsonValidationErrors('subtotal');
+        $this->postJson('/order/store', $this->payload([$this->item()], ['subtotal' => 100000, 'discount' => 100001]))->assertStatus(422)->assertJsonValidationErrors('discount');
+        $this->assertSame(0, Order::count());
+    }
+
+    public function test_the_automotive_invoice_uses_the_typed_subtotal_and_print_has_no_price_columns(): void
+    {
+        $id = $this->postJson('/order/store', $this->payload([$this->item()], ['subtotal' => 750000, 'discount' => 50000]))->json('id_order');
+        $idInvoice = $this->postJson("/invoice/generate/{$id}")->assertOk()->json('id_invoice');
+
+        $this->assertEquals(700000, \App\Models\Invoice::findOrFail($idInvoice)->grand_total);
+        $this->get("/invoice/print/{$idInvoice}")->assertOk()
+            ->assertSee('Rp 700.000,00', false)->assertDontSee('Unit Price')->assertDontSee('<th>Discount</th>', false);
+        $this->get("/invoice/show/{$idInvoice}")->assertOk()->assertDontSee('Unit Price');
+    }
+
+    public function test_the_product_type_must_belong_to_the_chosen_product(): void
+    {
+        $other = ProductType::factory()->create(['order_category' => 'AUTOMOTIVE']);
+
+        $this->postJson('/order/store', $this->payload([$this->item(['id_product_type' => $other->id_product_type])]))
+            ->assertStatus(422)->assertJsonValidationErrors('details.0.id_product');
+        $this->postJson('/order/store', $this->payload([$this->item(['id_product_type' => null])]))
+            ->assertStatus(422)->assertJsonValidationErrors('id_product_type');
+        $this->assertSame(0, Order::count());
+    }
+
+    public function test_area_is_only_required_when_the_product_asks_for_it(): void
+    {
+        $noArea = ProductType::factory()->create(['order_category' => 'AUTOMOTIVE', 'is_area_required' => false]);
+        $coating = $this->product(['nama_produk' => 'Coating X', 'id_product_type' => $noArea->id_product_type]);
+        $item = ['id_product_type' => $noArea->id_product_type, 'id_product' => $coating->id_product];
+
+        $id = $this->postJson('/order/store', $this->payload([$this->item($item + ['area' => ''])]))->assertStatus(201)->json('id_order');
+        $this->assertNull(Order::findOrFail($id)->details()->firstOrFail()->area);
+        // A stray area from the form is ignored rather than saved.
+        $id2 = $this->postJson('/order/store', $this->payload([$this->item($item + ['area' => 'Belakang'])]))->assertStatus(201)->json('id_order');
+        $this->assertNull(Order::findOrFail($id2)->details()->firstOrFail()->area);
+
+        // The same Product Type twice without an area is still a duplicate.
+        $this->postJson('/order/store', $this->payload([$this->item($item), $this->item($item)]))->assertStatus(422)->assertJsonValidationErrors('details.1');
+        // Products that need an area keep requiring one.
+        $this->postJson('/order/store', $this->payload([$this->item(['area' => ''])]))->assertStatus(422)->assertJsonValidationErrors('details.0.area');
+    }
+
+    public function test_the_order_form_lists_products_for_the_category_with_their_area_flag(): void
+    {
+        ProductType::factory()->create(['order_category' => 'AUTOMOTIVE', 'is_area_required' => false, 'name' => 'Coating']);
+        ProductType::factory()->create(['order_category' => 'BUILDING', 'name' => 'Gedung']);
+
+        $this->getJson('/order/product-types?order_type=AUTOMOTIVE')->assertOk()->assertJsonCount(2, 'data')
+            ->assertJsonFragment(['name' => 'Coating', 'is_area_required' => false]);
+        $this->getJson('/order/products?order_type=AUTOMOTIVE')->assertOk()->assertJsonPath('data.0.id_product_type', $this->autoType->id_product_type);
+    }
+
+    public function test_the_product_master_stores_whether_an_area_is_required(): void
+    {
+        $this->postJson('/product-type/store', ['code' => 'COAT', 'name' => 'Coating', 'order_category' => 'AUTOMOTIVE', 'is_active' => 1])->assertOk();
+        $this->assertFalse(ProductType::where('code', 'COAT')->firstOrFail()->is_area_required);
+
+        $this->postJson('/product-type/store', ['code' => 'FILM', 'name' => 'Kaca Film', 'order_category' => 'AUTOMOTIVE', 'is_active' => 1, 'is_area_required' => 1])->assertOk();
+        $this->assertTrue(ProductType::where('code', 'FILM')->firstOrFail()->is_area_required);
     }
 
     public function test_brand_is_required_and_must_be_valid(): void

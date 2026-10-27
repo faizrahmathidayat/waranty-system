@@ -12,9 +12,9 @@ class ProductType extends Model
 
     protected $primaryKey = 'id_product_type';
 
-    protected $fillable = ['code', 'name', 'description', 'order_category', 'is_active'];
+    protected $fillable = ['code', 'name', 'description', 'order_category', 'is_area_required', 'is_active'];
 
-    protected $casts = ['is_active' => 'boolean'];
+    protected $casts = ['is_active' => 'boolean', 'is_area_required' => 'boolean'];
 
     public function products(): HasMany { return $this->hasMany(Product::class, 'id_product_type', 'id_product_type'); }
 }

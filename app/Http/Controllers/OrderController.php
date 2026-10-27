@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\Building;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\ProductType;
 use App\Models\ProductVariant;
 use App\Models\Technician;
 use App\Models\Vehicle;
@@ -153,8 +154,15 @@ class OrderController extends Controller
         $products = Product::query()->join('product_types', 'product_types.id_product_type', '=', 'products.id_product_type')
             ->where('products.status', 'enabled')->where('product_types.is_active', true)->where('product_types.order_category', $orderType)
             ->orderBy('products.nama_produk')
-            ->get(['products.id_product', 'products.nama_produk', 'products.harga_default', 'products.is_warranty_eligible']);
+            ->get(['products.id_product', 'products.id_product_type', 'products.nama_produk', 'products.harga_default', 'products.is_warranty_eligible']);
         return response()->json(['data' => $products]);
+    }
+
+    public function productTypes(Request $request)
+    {
+        $this->ensureAuthenticated();
+        $orderType = $request->validate(['order_type' => 'required|in:AUTOMOTIVE,BUILDING'])['order_type'];
+        return response()->json(['data' => ProductType::where('is_active', true)->where('order_category', $orderType)->orderBy('name')->get(['id_product_type', 'name', 'is_area_required'])]);
     }
 
     public function productVariants($idProduct)
@@ -189,10 +197,12 @@ class OrderController extends Controller
             'id_building' => 'nullable|exists:buildings,id_building',
             'id_technician' => 'required|exists:technicians,id_technician',
             'order_date' => 'required|date',
+            'subtotal' => $request->input('order_type') === 'AUTOMOTIVE' ? 'required|numeric|min:0' : 'nullable',
             'discount' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
             'details' => 'required|array|min:1',
         ], [
+            'subtotal.required' => 'Subtotal harus diisi terlebih dahulu.', 'subtotal.numeric' => 'Subtotal harus berupa angka.', 'subtotal.min' => 'Subtotal tidak boleh negatif.',
             'brand.required' => 'Brand harus dipilih terlebih dahulu.',
             'brand.in' => 'Brand tidak valid.',
             'id_customer.required' => 'Customer harus diisi terlebih dahulu.',
@@ -219,7 +229,8 @@ class OrderController extends Controller
         // with a pre-dropdown area can still be saved without being forced to change it.
         $legacyAreas = $existing ? $existing->details()->pluck('area')->filter()->all() : [];
         $details = $this->validatedDetails($header['details'], $header['order_type'], $header['order_date'], $legacyAreas);
-        $subtotal = round(collect($details)->sum('subtotal'), 2);
+        // Automotive items carry no price; the subtotal is typed in by hand.
+        $subtotal = $header['order_type'] === 'AUTOMOTIVE' ? round((float) $header['subtotal'], 2) : round(collect($details)->sum('subtotal'), 2);
         $discount = round((float) ($header['discount'] ?? 0), 2);
         if ($discount > $subtotal) throw ValidationException::withMessages(['discount' => 'Discount header tidak boleh melebihi subtotal.']);
 
@@ -254,8 +265,9 @@ class OrderController extends Controller
         $result = [];
         $duplicates = [];
         foreach ($items as $index => $item) {
-            $data = Validator::make($item, ['id_product' => 'required|integer', 'id_product_variant' => 'nullable|integer', 'area' => $orderType === 'BUILDING' ? 'required|string|max:150' : 'nullable|string|max:150', 'area_custom' => 'nullable|string|max:150', 'total_luas' => $orderType === 'BUILDING' ? 'required|numeric|gt:0' : 'nullable|numeric', 'panjang' => 'nullable|numeric', 'lebar' => 'nullable|numeric', 'quantity' => 'required|numeric|gt:0', 'unit' => 'nullable|in:unit,m2,panel', 'unit_price' => 'nullable|numeric|min:0', 'discount' => 'nullable|numeric|min:0', 'discount_type' => 'nullable|in:NOMINAL,PERCENT', 'warranty_months' => 'nullable|integer|min:1|max:600'], [
-                'id_product.required' => 'Product harus diisi terlebih dahulu.', 'id_product.integer' => 'Product tidak valid.',
+            $data = Validator::make($item, ['id_product_type' => $orderType === 'AUTOMOTIVE' ? 'required|integer' : 'nullable|integer', 'id_product' => 'required|integer', 'id_product_variant' => 'nullable|integer', 'area' => $orderType === 'BUILDING' ? 'required|string|max:150' : 'nullable|string|max:150', 'area_custom' => 'nullable|string|max:150', 'total_luas' => $orderType === 'BUILDING' ? 'required|numeric|gt:0' : 'nullable|numeric', 'panjang' => 'nullable|numeric', 'lebar' => 'nullable|numeric', 'quantity' => 'required|numeric|gt:0', 'unit' => 'nullable|in:unit,m2,panel', 'unit_price' => 'nullable|numeric|min:0', 'discount' => 'nullable|numeric|min:0', 'discount_type' => 'nullable|in:NOMINAL,PERCENT', 'warranty_months' => 'nullable|integer|min:1|max:600'], [
+                'id_product_type.required' => 'Product harus diisi terlebih dahulu.', 'id_product_type.integer' => 'Product tidak valid.',
+                'id_product.required' => ($orderType === 'AUTOMOTIVE' ? 'Product Type' : 'Product') . ' harus diisi terlebih dahulu.', 'id_product.integer' => ($orderType === 'AUTOMOTIVE' ? 'Product Type' : 'Product') . ' tidak valid.',
                 'area.required' => 'Area harus diisi terlebih dahulu.',
                 'total_luas.required' => 'Luas harus diisi terlebih dahulu.', 'total_luas.gt' => 'Luas harus lebih besar dari nol.',
                 'quantity.required' => 'Quantity harus diisi terlebih dahulu.', 'quantity.gt' => 'Quantity harus lebih besar dari nol.',
@@ -264,17 +276,18 @@ class OrderController extends Controller
                 'discount_type.in' => 'Jenis discount tidak valid.',
                 'warranty_months.integer' => 'Masa Garansi harus berupa angka bulat.', 'warranty_months.min' => 'Masa Garansi harus lebih besar dari nol.',
             ])->validate();
-            $product = Product::query()->join('product_types', 'product_types.id_product_type', '=', 'products.id_product_type')->where('products.id_product', $data['id_product'])->where('products.status', 'enabled')->where('product_types.is_active', true)->where('product_types.order_category', $orderType)->select('products.*', 'product_types.code as product_type_code')->first();
-            if (!$product) throw ValidationException::withMessages(["details.$index.id_product" => 'Product tidak sesuai dengan kategori Order atau tidak aktif.']);
+            $product = Product::query()->join('product_types', 'product_types.id_product_type', '=', 'products.id_product_type')->where('products.id_product', $data['id_product'])->where('products.status', 'enabled')->where('product_types.is_active', true)->where('product_types.order_category', $orderType)->when($data['id_product_type'] ?? null, fn ($query, $idProductType) => $query->where('products.id_product_type', $idProductType))->select('products.*', 'product_types.code as product_type_code', 'product_types.is_area_required as product_type_area_required')->first();
+            if (!$product) throw ValidationException::withMessages(["details.$index.id_product" => ($orderType === 'AUTOMOTIVE' ? 'Product Type' : 'Product') . ' tidak sesuai dengan Product, kategori Order, atau tidak aktif.']);
             $variants = ProductVariant::where('id_product', $product->id_product)->where('is_active', true)->get();
             $variant = null;
             if ($data['id_product_variant'] ?? null) $variant = $variants->firstWhere('id_product_variant', (int) $data['id_product_variant']);
             if (($orderType === 'AUTOMOTIVE' && $product->product_type_code === 'KACA_FILM' && $variants->isNotEmpty() && !$variant) || (($data['id_product_variant'] ?? null) && !$variant)) throw ValidationException::withMessages(["details.$index.id_product_variant" => 'Variant aktif wajib dipilih dan harus milik product.']);
-            $area = ($data['area'] ?? '') === 'Lainnya' ? trim((string) ($data['area_custom'] ?? '')) : trim((string) ($data['area'] ?? ''));
-            if ($orderType === 'AUTOMOTIVE' && !in_array($area, array_merge(AutomotiveOrderCatalog::VEHICLE_AREAS, $legacyAreas), true)) {
+            $areaRequired = $orderType === 'BUILDING' || (bool) $product->product_type_area_required;
+            $area = !$areaRequired ? '' : (($data['area'] ?? '') === 'Lainnya' ? trim((string) ($data['area_custom'] ?? '')) : trim((string) ($data['area'] ?? '')));
+            if ($areaRequired && $orderType === 'AUTOMOTIVE' && !in_array($area, array_merge(AutomotiveOrderCatalog::VEHICLE_AREAS, $legacyAreas), true)) {
                 throw ValidationException::withMessages(["details.$index.area" => 'Area harus dipilih dari daftar: ' . implode(', ', AutomotiveOrderCatalog::VEHICLE_AREAS) . '.']);
             }
-            if ($area === '') throw ValidationException::withMessages(["details.$index.area" => 'Area wajib diisi.']);
+            if ($areaRequired && $area === '') throw ValidationException::withMessages(["details.$index.area" => 'Area wajib diisi.']);
             // Area is entered manually in the current Order form. Keep the
             // catalogue for suggestions/normalisation, but accept a clear
             // custom area such as "Full selain kaca depan".
@@ -284,6 +297,8 @@ class OrderController extends Controller
             $unitPrice = array_key_exists('unit_price', $data) && $data['unit_price'] !== null && $data['unit_price'] !== ''
                 ? round((float) $data['unit_price'], 2)
                 : round((float) ($product->harga_default ?? 0), 2);
+            // Automotive items are not priced: the order subtotal is entered on the header.
+            if ($orderType === 'AUTOMOTIVE') { $unitPrice = 0.0; $data['discount'] = 0; $data['discount_type'] = 'NOMINAL'; }
             $discountValue = round((float) ($data['discount'] ?? 0), 2);
             $discountType = $data['discount_type'] ?? 'NOMINAL';
             // Building orders now receive a final area (m²), not dimensions.

@@ -53,12 +53,12 @@ class OrderInvoiceWarrantyFlowTest extends TestCase
             'id_vehicle' => $parts['vehicle']->id_vehicle,
             'id_technician' => $parts['technician']->id_technician,
             'order_date' => now()->toDateString(),
-            'discount' => 0,
+            'subtotal' => 500000, 'discount' => 0,
             'details' => [[
+                'id_product_type' => $parts['productType']->id_product_type,
                 'id_product' => $parts['product']->id_product,
                 'area' => 'Kaca Depan',
                 'quantity' => 1,
-                'unit_price' => 500000,
                 'warranty_months' => $warrantyMonths,
             ]],
         ]);
@@ -191,12 +191,12 @@ class OrderInvoiceWarrantyFlowTest extends TestCase
             'id_vehicle' => $parts['vehicle']->id_vehicle,
             'id_technician' => $parts['technician']->id_technician,
             'order_date' => now()->toDateString(),
-            'discount' => 0,
+            'subtotal' => 500000, 'discount' => 0,
             'details' => [[
+                'id_product_type' => $parts['productType']->id_product_type,
                 'id_product' => $parts['product']->id_product,
                 'area' => 'Kaca Depan',
                 'quantity' => 1,
-                'unit_price' => 500000,
                 // warranty_months omitted on purpose.
             ]],
         ]);
@@ -217,12 +217,12 @@ class OrderInvoiceWarrantyFlowTest extends TestCase
             'id_vehicle' => $parts['vehicle']->id_vehicle,
             'id_technician' => $parts['technician']->id_technician,
             'order_date' => now()->toDateString(),
-            'discount' => 0,
+            'subtotal' => 500000, 'discount' => 0,
             'details' => [[
+                'id_product_type' => $parts['productType']->id_product_type,
                 'id_product' => $parts['product']->id_product,
                 'area' => 'Kaca Depan',
                 'quantity' => 1,
-                'unit_price' => 500000,
             ]],
         ]);
 

@@ -77,7 +77,7 @@ class InvoiceController extends Controller
                         if ($detail->subtotal < 0 || !$detail->product_name_snapshot) throw ValidationException::withMessages(['order' => 'Snapshot detail Order tidak valid.']);
                         $invoice->items()->create(['id_order_detail' => $detail->id_order_detail, 'product_name' => $detail->product_name_snapshot, 'variant_name' => $detail->variant_name_snapshot, 'treatment_name' => $detail->treatment_name_snapshot, 'area' => $detail->area, 'quantity' => $detail->quantity, 'unit' => $detail->unit, 'panjang' => $detail->panjang, 'lebar' => $detail->lebar, 'total_luas' => $detail->total_luas, 'unit_price' => $detail->unit_price, 'discount' => $detail->discount, 'subtotal' => $detail->subtotal]);
                     }
-                    $subtotal = round((float) $invoice->items()->sum('subtotal'), 2); $discount = round((float) $order->discount, 2);
+                    $subtotal = $order->order_type === 'AUTOMOTIVE' ? round((float) $order->subtotal, 2) : round((float) $invoice->items()->sum('subtotal'), 2); $discount = round((float) $order->discount, 2);
                     if ($subtotal < 0 || $discount > $subtotal) throw ValidationException::withMessages(['order' => 'Total Order tidak valid untuk Invoice.']);
                     $total = $subtotal - $discount;
                     $invoice->update(['subtotal' => $subtotal, 'discount' => $discount, 'tax_amount' => 0, 'grand_total' => $total, 'paid_amount' => 0, 'outstanding_amount' => $total]);

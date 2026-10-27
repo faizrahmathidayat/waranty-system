@@ -2,7 +2,7 @@
 @php
     $orderBrand = optional($invoice->order)->brand;
     $isLexent = $orderBrand === 'LEXENT';
-    $brandLabel = \App\Models\Order::BRANDS[$orderBrand] ?? null;
+    $isAutomotive = optional($invoice->order)->order_type === 'AUTOMOTIVE';
     $lexentLogo = asset(\App\Models\Order::BRAND_LOGOS['LEXENT']);
 @endphp
 <html><head><meta charset="utf-8"><title>{{ $invoice->invoice_number }}</title><style>
@@ -20,11 +20,9 @@ th,td{border:1px solid #555;padding:7px;text-align:left}
 .lx-contact{text-align:right;line-height:1.55;color:#6b7280;font-size:13px}
 .lx-contact b{display:block;color:#16233b;font-family:Cambria,Georgia,serif;font-size:13px;letter-spacing:.2px}
 .terms-page{page-break-before:always;break-before:page}
-.terms{page-break-inside:avoid;font-size:13px;line-height:1.45}
-.terms ol{margin:6px 0 14px;padding-left:20px}.terms li{margin-bottom:5px}
-.sign{margin-top:26px;text-align:right;page-break-inside:avoid;font-size:13px}
-.sign img{display:block;height:22px;margin:12px 0 12px auto}
-.lx-wm{position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden;z-index:-1;pointer-events:none}.lx-wm img{position:absolute;right:-2%;bottom:14%;width:50%}
+.terms{page-break-inside:avoid;font-size:15px;line-height:1.55;text-align:justify}
+.terms ol{margin:8px 0 16px;padding-left:22px}.terms li{margin-bottom:7px}
+.lx-wm{position:fixed;top:0;left:0;right:0;bottom:0;overflow:hidden;z-index:-1;pointer-events:none}.lx-wm img{position:absolute;right:0;bottom:0;width:48%}
 .lx-foot{text-align:center;color:#111;margin-top:30px}
 .lx-foot b{display:block;font-size:13px;letter-spacing:.3px;margin-bottom:4px}
 .lx-foot span{font-size:10.5px;letter-spacing:.2px}
@@ -32,7 +30,7 @@ th,td{border:1px solid #555;padding:7px;text-align:left}
 @media print{
     @page{size:A4 portrait;margin:0}
     button{display:none}
-    .lx-foot{position:fixed;left:0;right:0;bottom:0;margin:0;background:#fff}
+    .lx-foot{position:fixed;left:0;right:0;bottom:0;margin:0}
 }
 </style></head><body>
 @if($isLexent)<div class="lx-wm"><img src="{{ asset('images/lexent-watermark.png') }}" alt=""></div>@endif
@@ -48,7 +46,7 @@ th,td{border:1px solid #555;padding:7px;text-align:left}
 @endif
 <h1>INVOICE</h1><p><b>{{ $invoice->invoice_number }}</b><br>Date: {{ $invoice->invoice_date->format('d M Y') }}</p>
 <table class="noborder"><tr><td><b>Customer</b><br>{{ optional($invoice->customer)->nama_customer }}<br>{{ optional($invoice->customer)->alamat }}<br>{{ optional($invoice->customer)->no_hp }}</td><td><b>Order</b><br>{{ optional($invoice->order)->order_number }} — {{ optional($invoice->order)->order_type }}</td></tr></table>
-<table><tr><th>No</th><th>Description</th><th>Area / Luas</th><th>Qty</th><th>Unit Price</th><th>Discount</th><th>Subtotal</th></tr>@foreach($invoice->items as $item)<tr><td>{{ $loop->iteration }}</td><td>{{ $item->treatment_name ? $item->treatment_name.' - ' : '' }}{{ $item->product_name }} {{ $item->variant_name }}</td><td>{{ $item->area }} @if(optional($invoice->order)->order_type === 'BUILDING')(Luas: {{ $item->total_luas }} m²)@elseif($item->panjang)({{ $item->panjang }} × {{ $item->lebar }} m; {{ $item->total_luas }} m²)@endif</td><td>{{ $item->quantity }} {{ $item->unit }}</td><td class="right">Rp {{ number_format($item->unit_price,2,',','.') }}</td><td class="right">Rp {{ number_format($item->discount,2,',','.') }}</td><td class="right">Rp {{ number_format($item->subtotal,2,',','.') }}</td></tr>@endforeach</table>
+<table><tr><th>No</th><th>Description</th><th>Area / Luas</th><th>Qty</th>@unless($isAutomotive)<th>Unit Price</th><th>Discount</th><th>Subtotal</th>@endunless</tr>@foreach($invoice->items as $item)<tr><td>{{ $loop->iteration }}</td><td>{{ $item->treatment_name ? $item->treatment_name.' - ' : '' }}{{ $item->product_name }} {{ $item->variant_name }}</td><td>{{ $item->area ?: '-' }} @if(optional($invoice->order)->order_type === 'BUILDING')(Luas: {{ $item->total_luas }} m²)@elseif($item->panjang)({{ $item->panjang }} × {{ $item->lebar }} m; {{ $item->total_luas }} m²)@endif</td><td>{{ $item->quantity }} {{ $item->unit }}</td>@unless($isAutomotive)<td class="right">Rp {{ number_format($item->unit_price,2,',','.') }}</td><td class="right">Rp {{ number_format($item->discount,2,',','.') }}</td><td class="right">Rp {{ number_format($item->subtotal,2,',','.') }}</td>@endunless</tr>@endforeach</table>
 <table class="noborder" style="margin-left:auto;width:40%"><tr><td>Subtotal</td><td class="right">Rp {{ number_format($invoice->subtotal,2,',','.') }}</td></tr><tr><td>Discount</td><td class="right">Rp {{ number_format($invoice->discount,2,',','.') }}</td></tr><tr><td>Tax</td><td class="right">Rp {{ number_format($invoice->tax_amount,2,',','.') }}</td></tr><tr><td><b>Grand Total</b></td><td class="right"><b>Rp {{ number_format($invoice->grand_total,2,',','.') }}</b></td></tr><tr><td>Outstanding</td><td class="right">Rp {{ number_format($invoice->outstanding_amount,2,',','.') }}</td></tr></table>
 @if($bankAccounts->isNotEmpty())<div style="margin-top:24px"><b>Pembayaran melalui transfer:</b><br>@foreach($bankAccounts as $account){{ $account->bank_name }} — {{ $account->account_number }} a.n. {{ $account->account_holder }}<br>@endforeach</div>@endif
 <div class="terms-page">
@@ -66,7 +64,6 @@ th,td{border:1px solid #555;padding:7px;text-align:left}
     </ol>
     Demikian surat penawaran ini kami sampaikan. Besar harapan kami dapat menjalin kerja sama yang baik dengan Bapak/Ibu. Atas perhatian dan kesempatan yang diberikan, kami ucapkan terima kasih.
 </div>
-<div class="sign">Hormat kami,@if($isLexent)<img src="{{ $lexentLogo }}" alt="LEXENT">@else<br><br><br>@endif{{ $brandLabel ? 'Management '.$brandLabel : '' }}</div>
 </div>
 </div></td></tr></tbody>
 </table>

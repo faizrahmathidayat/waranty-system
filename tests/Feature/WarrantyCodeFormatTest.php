@@ -91,8 +91,8 @@ class WarrantyCodeFormatTest extends TestCase
             $vehicle = Vehicle::factory()->create(['id_customer' => $customer->id_customer]);
             $idOrder = $this->postJson('/order/store', [
                 'order_type' => 'AUTOMOTIVE', 'brand' => 'LEXENT', 'id_customer' => $customer->id_customer, 'id_vehicle' => $vehicle->id_vehicle,
-                'id_technician' => Technician::factory()->create()->id_technician, 'order_date' => now()->toDateString(), 'discount' => 0,
-                'details' => [['id_product' => $product->id_product, 'area' => $area, 'quantity' => 1, 'unit_price' => 500000, 'warranty_months' => 6]],
+                'id_technician' => Technician::factory()->create()->id_technician, 'order_date' => now()->toDateString(), 'subtotal' => 500000, 'discount' => 0,
+                'details' => [['id_product_type' => $type->id_product_type, 'id_product' => $product->id_product, 'area' => $area, 'quantity' => 1, 'warranty_months' => 6]],
             ])->assertStatus(201)->json('id_order');
             $idInvoice = $this->postJson("/invoice/generate/{$idOrder}")->assertOk()->json('id_invoice');
             $this->postJson("/invoice/{$idInvoice}/payment", ['payment_date' => now()->toDateString(), 'amount' => 500000, 'payment_method' => 'CASH'])->assertOk();

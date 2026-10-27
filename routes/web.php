@@ -83,6 +83,7 @@ Route::post('/order/cancel/{id}', [OrderController::class, 'cancel']);
 Route::get('/order/customer/{id_customer}/vehicles', [OrderController::class, 'customerVehicles']);
 Route::get('/order/customer/{id_customer}/buildings', [OrderController::class, 'customerBuildings']);
 Route::get('/order/products', [OrderController::class, 'products']);
+Route::get('/order/product-types', [OrderController::class, 'productTypes']);
 Route::get('/order/product/{id_product}/variants', [OrderController::class, 'productVariants']);
 Route::post('/order/{id}/generate-warranty', [ServiceCompletionController::class, 'generate']);
 

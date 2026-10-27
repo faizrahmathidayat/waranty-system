@@ -47,7 +47,14 @@
         .rows dd:before { content:":"; display:inline-block; width:18px; color:var(--muted); }
         .rows dt, .rows dd { line-height:1.55; }
         .rows.block + .rows.block { margin-top:12px; padding-top:12px; border-top:1px dashed var(--line); }
+        .ptable-wrap { overflow-x:auto; }
+        .ptable { width:100%; border-collapse:collapse; font-size:13px; }
+        .ptable th { padding:6px 14px 6px 0; text-align:left; font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--line); }
+        .ptable td { padding:7px 14px 7px 0; color:var(--ink); line-height:1.5; border-bottom:1px dashed var(--line); word-break:break-word; }
+        .ptable tbody tr:last-child td { border-bottom:0; }
+        .ptable .nowrap { white-space:nowrap; }
         .sec-split { display:grid; grid-template-columns:1.25fr 1fr; }
+        .sec-split.single { grid-template-columns:1fr; }
         .sec-split .sec { border-bottom:0; }
         .sec-split > .sec + .sec { border-left:1px solid var(--line); padding-left:22px; }
         .sec-wrap { border-bottom:1px solid var(--line); }
@@ -105,12 +112,6 @@
     $customer = $warranty->customer;
     $start = Carbon::parse($warranty->tanggal_pasang);
     $end = Carbon::parse($warranty->tanggal_expired);
-    $diff = $start->diff($end);
-    $period = [];
-    if ($diff->y) $period[] = $diff->y . ' Tahun';
-    if ($diff->m) $period[] = $diff->m . ' Bulan';
-    if (!$period && $diff->d) $period[] = $diff->d . ' Hari';
-    $period = $period ? implode(' ', $period) : '-';
 
     $itemProduct = fn ($item) => $isTransactionWarranty ? $item->product_name_snapshot : optional($item->product)->nama_produk;
     $itemVariant = fn ($item) => $isTransactionWarranty ? $item->variant_name_snapshot : null;
@@ -181,35 +182,40 @@
                             <dt>Jenis Produk</dt><dd>{{ $itemProduct($item) ?: '-' }}</dd>
                             <dt>Tipe</dt><dd>{{ $itemVariant($item) ?: '-' }}</dd>
                             @if($item->total_luas)<dt>Luas</dt><dd>{{ $luas($item->total_luas) }} m²</dd>@endif
+                            <dt>Berlaku Mulai</dt><dd>{{ $fmt($item->tanggal_pasang ?: $warranty->tanggal_pasang) }}</dd>
+                            <dt>Berlaku Sampai</dt><dd>{{ $fmt($item->tanggal_expired ?: $warranty->tanggal_expired) }}</dd>
                         </dl>
                     @empty
                         <p class="note">Belum ada detail produk.</p>
                     @endforelse
                 @else
-                    <dl class="rows">
-                        <dt>Jenis Produk</dt><dd>{{ $jenisProduk }}</dd>
-                        @foreach($sortedItems as $item)
-                            <dt>{{ $itemTitle($item) ?: 'Item ' . $loop->iteration }}</dt><dd>{{ $itemProduct($item) ?: '-' }}</dd>
-                        @endforeach
-                    </dl>
+                    @php $hasArea = $sortedItems->contains(fn ($item) => $itemTitle($item)); @endphp
+                    @if($sortedItems->isEmpty())
+                        <p class="note">Belum ada detail produk.</p>
+                    @else
+                        <div class="ptable-wrap">
+                            <table class="ptable">
+                                <thead><tr><th>Jenis Produk</th><th>Tipe</th>@if($hasArea)<th>Area</th>@endif<th>Berlaku Mulai</th><th>Berlaku Sampai</th></tr></thead>
+                                <tbody>
+                                    @foreach($sortedItems as $item)
+                                        <tr>
+                                            <td>{{ optional(optional($item->product)->productType)->name ?: $jenisProduk }}</td>
+                                            <td>{{ $itemProduct($item) ?: '-' }}</td>
+                                            @if($hasArea)<td>{{ $itemTitle($item) ?: '-' }}</td>@endif
+                                            <td class="nowrap">{{ $fmt($item->tanggal_pasang ?: $warranty->tanggal_pasang) }}</td>
+                                            <td class="nowrap">{{ $fmt($item->tanggal_expired ?: $warranty->tanggal_expired) }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
                 @endif
             </div>
         </div>
 
         <div class="sec-wrap">
-            <div class="sec-split">
-                <div class="sec">
-                    <i class="fa-solid fa-shield-halved"></i>
-                    <div>
-                        <h2>Informasi Garansi</h2>
-                        <dl class="rows">
-                            <dt>Nomor E-Warranty</dt><dd><b>{{ $warranty->kode_warranty }}</b></dd>
-                            <dt>Masa Garansi</dt><dd><b>{{ $period }}</b></dd>
-                            <dt>Berlaku Mulai</dt><dd><b>{{ $fmt($warranty->tanggal_pasang) }}</b></dd>
-                            <dt>Berlaku Sampai</dt><dd><b>{{ $fmt($warranty->tanggal_expired) }}</b></dd>
-                        </dl>
-                    </div>
-                </div>
+            <div class="sec-split single">
                 <div class="sec">
                     <i class="fa-regular fa-calendar-check"></i>
                     <div>

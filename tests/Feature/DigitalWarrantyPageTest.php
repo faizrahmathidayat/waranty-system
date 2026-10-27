@@ -62,8 +62,8 @@ class DigitalWarrantyPageTest extends TestCase
         $product = Product::factory()->create(['nama_produk' => 'LEXENT HT', 'id_product_type' => $type->id_product_type, 'status' => 'enabled', 'is_warranty_eligible' => true]);
 
         $kode = $this->warranty(
-            ['order_type' => 'AUTOMOTIVE', 'id_vehicle' => $vehicle->id_vehicle],
-            array_map(fn ($area) => ['id_product' => $product->id_product, 'area' => $area], $areas)
+            ['order_type' => 'AUTOMOTIVE', 'id_vehicle' => $vehicle->id_vehicle, 'subtotal' => 500000],
+            array_map(fn ($area) => ['id_product_type' => $type->id_product_type, 'id_product' => $product->id_product, 'area' => $area], $areas)
         );
 
         if ($guest) auth()->logout(); // the public page is for customers: no login
@@ -97,21 +97,21 @@ class DigitalWarrantyPageTest extends TestCase
             ->assertSee('Budi Santoso')
             ->assertSee('081234567890')
             ->assertSee('Jl. Melati No. 10')
-            ->assertSee('6 Bulan')
+            ->assertDontSee('Informasi Garansi')->assertDontSee('Masa Garansi')
             ->assertSee('WARRANTY ACTIVE')
             ->assertSee('images/warranty-cover.jpg', false);
     }
 
-    public function test_automotive_lists_only_the_areas_in_the_order_as_area_and_product_name(): void
+    public function test_automotive_lists_one_table_row_per_product_with_jenis_tipe_and_area(): void
     {
         $kode = $this->automotiveWarranty(['Kaca Depan']);
 
         $html = $this->get('/warranty/' . $kode)->assertOk()->getContent();
         preg_match('/<h2>Informasi Produk<\/h2>(.*?)<div class="sec-wrap">/s', $html, $m);
-        $section = preg_replace('/\s+/', ' ', strip_tags(str_replace(['</dt>', '</dd>'], ['</dt> ', '</dd> '], $m[1])));
+        $section = preg_replace('/\s+/', ' ', strip_tags(str_replace(['</th>', '</td>'], ['</th> ', '</td> '], $m[1])));
 
-        $this->assertStringContainsString('Jenis Produk Kaca Film', $section);
-        $this->assertMatchesRegularExpression('/Kaca Depan\s+.*LEXENT HT/', $section);
+        $this->assertStringContainsString('<table class="ptable">', $m[1]);
+        $this->assertStringContainsString('Jenis Produk Tipe Area Berlaku Mulai Berlaku Sampai Kaca Film LEXENT HT Kaca Depan '.now()->format('d / m / Y').' '.now()->addMonths(6)->format('d / m / Y'), $section);
         foreach (['Samping Depan', 'Samping Belakang', 'Belakang', 'Sunroof'] as $other) {
             $this->assertStringNotContainsString($other, $section);
         }
@@ -123,6 +123,7 @@ class DigitalWarrantyPageTest extends TestCase
 
         $this->get('/warranty/' . $kode)->assertOk()
             ->assertSeeInOrder(['Jenis Produk', 'Kaca Depan', 'Samping Depan', 'Samping Belakang', 'Belakang', 'Sunroof / Panoramic']);
+        $this->assertSame(5, substr_count($this->get('/warranty/' . $kode)->getContent(), '<td>LEXENT HT</td>'));
     }
 
     public function test_vehicle_and_plate_are_in_the_customer_section_and_the_old_product_rows_are_gone(): void
@@ -144,8 +145,8 @@ class DigitalWarrantyPageTest extends TestCase
 
         $html = $this->get('/warranty/' . $kode)->assertOk()
             ->assertSeeInOrder(['Data Customer', 'Properti', 'Gedung Mawar', 'Alamat Properti', 'Jl. Anggrek 5', 'Informasi Produk',
-                'Lokasi', 'Lt 1', 'Jenis Produk', 'High Perform', 'Tipe', 'HT 15', 'Luas', '11 m²',
-                'Lokasi', 'Lt 2', 'Jenis Produk', 'High Perform', 'Tipe', 'HT 15', 'Luas', '12,5 m²', 'Informasi Garansi'])
+                'Lokasi', 'Lt 1', 'Jenis Produk', 'High Perform', 'Tipe', 'HT 15', 'Luas', '11 m²', 'Berlaku Mulai', 'Berlaku Sampai',
+                'Lokasi', 'Lt 2', 'Jenis Produk', 'High Perform', 'Tipe', 'HT 15', 'Luas', '12,5 m²', 'Berlaku Mulai', 'Berlaku Sampai', 'Jenis Produk Lainnya'])
             ->getContent();
 
         $this->assertSame(2, substr_count($html, 'class="rows block"'));
@@ -184,7 +185,7 @@ class DigitalWarrantyPageTest extends TestCase
     {
         $kode = $this->automotiveWarranty(['Kaca Depan']);
 
-        $this->get('/warranty/' . $kode)->assertSee('0815 1345 5525')->assertSee('www.lexent.id');
+        $this->get('/warranty/' . $kode)->assertSee('0815 1345 5525')->assertSee('www.lexentindonesia.com');
 
         config(['warranty_card.customer_service_whatsapp' => '0811 000 111', 'warranty_card.website' => 'www.contoh.test']);
 

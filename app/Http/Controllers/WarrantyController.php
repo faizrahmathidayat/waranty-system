@@ -335,6 +335,11 @@ class WarrantyController extends Controller
             'items' => $items->map(function ($item) use ($warranty, $isTransactionWarranty) {
                 $item->status = $this->effectiveStatus($warranty->status, $item->tanggal_expired, $item->status);
                 if ($isTransactionWarranty) { $item->area_pekerjaan = $item->area; $item->posisi_kaca = $item->area; }
+                // The warranty length is not stored on the item; it is the span between install and expiry.
+                if ($item->tanggal_pasang && $item->tanggal_expired) {
+                    $span = \Carbon\Carbon::parse($item->tanggal_pasang)->diff(\Carbon\Carbon::parse($item->tanggal_expired));
+                    $item->masa_garansi_bulan = $span->y * 12 + $span->m;
+                }
                 return $item;
             })->values(),
         ]);
@@ -409,7 +414,7 @@ class WarrantyController extends Controller
 
     public function digitalWarranty($kode)
     {
-        $warranty = Warranty::with(['customer', 'product', 'warrantyType', 'warrantyItems', 'assetVehicle', 'assetBuilding', 'vehicle.items.product', 'building.items.product', 'ppf.items.product'])
+        $warranty = Warranty::with(['customer', 'product', 'warrantyType', 'warrantyItems.product.productType', 'assetVehicle', 'assetBuilding', 'vehicle.items.product', 'building.items.product', 'ppf.items.product'])
             ->where('kode_warranty', $kode)
             ->first();
 

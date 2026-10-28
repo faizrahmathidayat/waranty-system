@@ -69,6 +69,17 @@ class WarrantyCodeFormatTest extends TestCase
         $this->assertSame('LEX-2026-100001', $this->generator()->next(Carbon::create(2026, 12, 31)));
     }
 
+    public function test_glosspro_uses_the_gp_prefix_with_its_own_sequence(): void
+    {
+        $this->insertCode('LEX-2026-00005');
+
+        $this->assertSame('GP-2026-00001', $this->generator()->next(Carbon::create(2026, 3, 1), 'GLOSSPRO'));
+        $this->insertCode('GP-2026-00001');
+        $this->assertSame('GP-2026-00002', $this->generator()->next(Carbon::create(2026, 3, 1), 'GLOSSPRO'));
+        $this->assertSame('LEX-2026-00006', $this->generator()->next(Carbon::create(2026, 3, 1), 'LEXENT'));
+        $this->assertSame('LEX-2026-00006', $this->generator()->next(Carbon::create(2026, 3, 1)));
+    }
+
     public function test_the_code_fits_the_column_and_is_unique(): void
     {
         $this->insertCode('LEX-2026-00001');

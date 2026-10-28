@@ -27,13 +27,17 @@
         .cv-id strong { font-size:22px; font-size:max(16px,5.1cqw); font-weight:600; letter-spacing:.06em; -webkit-line-clamp:1; }
         .cv-status { position:absolute; left:0; right:0; top:84.2%; display:flex; justify-content:center; align-items:center; gap:.7em; font-size:12px; font-size:max(11px,1.85cqw); font-weight:600; letter-spacing:.28em; color:#2fe283; }
         .cv-status i { font-size:1.5em; letter-spacing:0; }
-        .cv-status.expired { color:#ff7a77; } .cv-status.claim { color:#ffc766; } .cv-status.void { color:#c3c9d2; }
+        .cv-status.inactive { color:#ff7a77; } .cv-status.claim { color:#ffc766; } .cv-status.void { color:#c3c9d2; }
         @container (max-width: 470px) { .cv-product, .cv-customer { font-size:max(10px,2.7cqw); } .cv span { -webkit-line-clamp:1; } .cv-status { letter-spacing:.18em; } }
 
         /* ---------- Detail (light) card ---------- */
         .detail { display:flex; flex-direction:column; padding:30px 32px 22px; border-radius:24px; background:var(--paper); border:1px solid #eceff4; box-shadow:0 20px 50px rgba(15,23,42,.12); }
         .d-head { display:flex; justify-content:space-between; align-items:flex-start; gap:18px; padding-bottom:18px; border-bottom:1px solid var(--line); }
         .d-head img { height:34px; width:auto; }
+        .brand-glosspro { display:flex; align-items:center; gap:12px; }
+        .d-head .brand-glosspro img { height:54px; }
+        .brand-glosspro .brand-word { font-size:clamp(20px,2.4vw,28px); font-weight:700; letter-spacing:.16em; color:var(--navy); line-height:1; }
+        .d-foot img.logo-glosspro { height:24px; }
         .d-head .brand-tag { display:block; margin-top:8px; font-size:9px; letter-spacing:.42em; color:var(--muted); }
         .d-head .title { text-align:right; }
         .d-head .title strong { display:block; font-size:clamp(16px,1.7vw,21px); font-weight:600; letter-spacing:.2em; color:var(--navy); }
@@ -53,6 +57,8 @@
         .ptable td { padding:7px 14px 7px 0; color:var(--ink); line-height:1.5; border-bottom:1px dashed var(--line); word-break:break-word; }
         .ptable tbody tr:last-child td { border-bottom:0; }
         .ptable .nowrap { white-space:nowrap; }
+        .pstatus { display:inline-block; padding:1px 8px; border-radius:999px; font-size:10px; font-weight:600; line-height:1.6; letter-spacing:.02em; white-space:nowrap; word-break:normal; color:#fff; background:var(--active); }
+        .pstatus.inactive { background:var(--expired); }
         .sec-split { display:grid; grid-template-columns:1.25fr 1fr; }
         .sec-split.single { grid-template-columns:1fr; }
         .sec-split .sec { border-bottom:0; }
@@ -104,10 +110,25 @@
     $statusOf = function ($itemStatus, $expiredAt) use ($warranty, $today) {
         if ($warranty->status === 'Void') return 'Void';
         if ($itemStatus === 'Claim' || $warranty->status === 'Claim') return 'Claim';
-        return Carbon::parse($expiredAt)->startOfDay()->lt($today) ? 'Expired' : 'Active';
+        return Carbon::parse($expiredAt)->startOfDay()->lt($today) ? 'Inactive' : 'Active';
     };
+    // Per-product status in "Informasi Produk" follows the expiry date only.
+    $activeOf = fn ($item) => Carbon::parse($item->tanggal_expired ?: $warranty->tanggal_expired)->startOfDay()->gte($today);
+    // Brand comes from the order the warranty was generated from; manual warranties have no order and stay LEXENT.
+    $brand = optional($warranty->order)->brand === 'GLOSSPRO' ? 'GLOSSPRO' : 'LEXENT';
+    $brandName = \App\Models\Order::BRANDS[$brand];
+    $coverImage = $brand === 'GLOSSPRO' ? 'images/warranty-cover-glosspro.jpg' : 'images/warranty-cover.jpg';
+    $brandText = $brand === 'GLOSSPRO' ? 'GlossPro' : 'Lexent';
+    $otherProducts = $brand === 'GLOSSPRO' ? ['Kaca Film Mobil', 'Coating', 'PPF', 'Anti Karat'] : ['Kaca Film Mobil', 'Kaca Film Bangunan', 'Paint Protection Film (PPF)'];
+    $csWhatsapp = $brand === 'GLOSSPRO' ? config('warranty_card.glosspro_customer_service_whatsapp') : config('warranty_card.customer_service_whatsapp');
+    $csWebsite = $brand === 'GLOSSPRO' ? config('warranty_card.glosspro_website') : config('warranty_card.website');
+    $brandLogo = asset(\App\Models\Order::BRAND_LOGOS[$brand]);
+    // The cover label is Inactive once every product in "Informasi Produk" is inactive.
     $headerStatus = $statusOf(null, $warranty->tanggal_expired);
-    $statusIcon = ['Active' => 'fa-circle-check', 'Expired' => 'fa-circle-xmark', 'Claim' => 'fa-triangle-exclamation', 'Void' => 'fa-ban'];
+    if ($items->isNotEmpty() && in_array($headerStatus, ['Active', 'Inactive'], true)) {
+        $headerStatus = $items->contains(fn ($item) => $activeOf($item)) ? 'Active' : 'Inactive';
+    }
+    $statusIcon = ['Active' => 'fa-circle-check', 'Inactive' => 'fa-circle-xmark', 'Claim' => 'fa-triangle-exclamation', 'Void' => 'fa-ban'];
 
     $customer = $warranty->customer;
     $start = Carbon::parse($warranty->tanggal_pasang);
@@ -136,8 +157,8 @@
 <main class="ew">
     {{-- ============ Cover card (artwork + dynamic values) ============ --}}
     <section class="cover" id="warrantyCover">
-        <h1 class="sr-only">Official E-Warranty LEXENT</h1>
-        <img class="cover-art" src="{{ asset('images/warranty-cover.jpg') }}?v={{ @filemtime(public_path('images/warranty-cover.jpg')) }}" alt="" width="1542" height="2000">
+        <h1 class="sr-only">Official E-Warranty {{ $brandName }}</h1>
+        <img class="cover-art" src="{{ asset($coverImage) }}?v={{ @filemtime(public_path($coverImage)) }}" alt="" width="1542" height="2000">
         <div class="cv cv-product"><span title="{{ $typeName }}">{{ $typeName }}</span></div>
         <div class="cv cv-customer"><span title="{{ $customerName }}">{{ $customerName }}</span></div>
         <div class="cv cv-id"><strong>{{ $warranty->kode_warranty }}</strong></div>
@@ -147,7 +168,7 @@
     {{-- ============ Detail card ============ --}}
     <section class="detail" id="warrantyDetail">
         <header class="d-head">
-            <div><img src="{{ asset('images/lexent-logo.png') }}" alt="LEXENT"><span class="brand-tag">WINDOW FILM &nbsp;•&nbsp; PPF</span></div>
+            <div>@if($brand === 'GLOSSPRO')<div class="brand-glosspro"><img src="{{ $brandLogo }}" alt="{{ $brandName }}"><span class="brand-word">GLOSSPRO</span></div>@else<img src="{{ $brandLogo }}" alt="{{ $brandName }}">@endif<span class="brand-tag">WINDOW FILM &nbsp;•&nbsp; PPF</span></div>
             <div class="title"><strong>E-WARRANTY CARD</strong><span>AUTOMOTIVE &amp; BUILDING<br>PROTECTION FILM</span></div>
         </header>
 
@@ -184,6 +205,7 @@
                             @if($item->total_luas)<dt>Luas</dt><dd>{{ $luas($item->total_luas) }} m²</dd>@endif
                             <dt>Berlaku Mulai</dt><dd>{{ $fmt($item->tanggal_pasang ?: $warranty->tanggal_pasang) }}</dd>
                             <dt>Berlaku Sampai</dt><dd>{{ $fmt($item->tanggal_expired ?: $warranty->tanggal_expired) }}</dd>
+                            <dt>Status</dt><dd><span class="pstatus {{ $activeOf($item) ? '' : 'inactive' }}">{{ $activeOf($item) ? 'Active' : 'Inactive' }}</span></dd>
                         </dl>
                     @empty
                         <p class="note">Belum ada detail produk.</p>
@@ -195,7 +217,7 @@
                     @else
                         <div class="ptable-wrap">
                             <table class="ptable">
-                                <thead><tr><th>Jenis Produk</th><th>Tipe</th>@if($hasArea)<th>Area</th>@endif<th>Berlaku Mulai</th><th>Berlaku Sampai</th></tr></thead>
+                                <thead><tr><th>Jenis Produk</th><th>Tipe</th>@if($hasArea)<th>Area</th>@endif<th>Berlaku Mulai</th><th>Berlaku Sampai</th><th>Status</th></tr></thead>
                                 <tbody>
                                     @foreach($sortedItems as $item)
                                         <tr>
@@ -204,6 +226,7 @@
                                             @if($hasArea)<td>{{ $itemTitle($item) ?: '-' }}</td>@endif
                                             <td class="nowrap">{{ $fmt($item->tanggal_pasang ?: $warranty->tanggal_pasang) }}</td>
                                             <td class="nowrap">{{ $fmt($item->tanggal_expired ?: $warranty->tanggal_expired) }}</td>
+                                            <td class="nowrap"><span class="pstatus {{ $activeOf($item) ? '' : 'inactive' }}">{{ $activeOf($item) ? 'Active' : 'Inactive' }}</span></td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -220,11 +243,11 @@
                     <i class="fa-regular fa-calendar-check"></i>
                     <div>
                         <h2>Jenis Produk Lainnya</h2>
-                        <p class="note">Kartu garansi ini berlaku untuk semua produk Lexent, meliputi:</p>
+                        <p class="note">Kartu garansi ini berlaku untuk semua produk {{ $brandText }}, meliputi:</p>
                         <ul class="tick">
-                            <li><i class="fa-solid fa-check"></i>Kaca Film Mobil</li>
-                            <li><i class="fa-solid fa-check"></i>Kaca Film Bangunan</li>
-                            <li><i class="fa-solid fa-check"></i>Paint Protection Film (PPF)</li>
+                            @foreach($otherProducts as $otherProduct)
+                                <li><i class="fa-solid fa-check"></i>{{ $otherProduct }}</li>
+                            @endforeach
                         </ul>
                     </div>
                 </div>
@@ -235,7 +258,7 @@
             <i class="fa-regular fa-file-lines"></i>
             <div>
                 <h2>Garansi Meliputi</h2>
-                <p class="note">Garansi Lexent berlaku terhadap cacat produk dan/atau masalah yang termasuk dalam ketentuan garansi produk yang bersangkutan selama masa garansi.</p>
+                <p class="note">Garansi {{ $brandText }} berlaku terhadap cacat produk dan/atau masalah yang termasuk dalam ketentuan garansi produk yang bersangkutan selama masa garansi.</p>
                 <div class="cover-cols">
                     <div>
                         <h3><i class="fa-solid fa-circle-check"></i>Garansi dapat mencakup:</h3>
@@ -243,7 +266,7 @@
                             <li>Cacat material / produk</li>
                             <li>Perubahan kondisi produk sesuai ketentuan</li>
                             <li>Adhesive failure sesuai ketentuan produk</li>
-                            <li>Masalah lain yang dinyatakan dalam warranty policy Lexent.</li>
+                            <li>Masalah lain yang dinyatakan dalam warranty policy {{ $brandText }}.</li>
                         </ul>
                     </div>
                     <div>
@@ -254,7 +277,7 @@
                             <li>Kerusakan akibat modifikasi atau pemasangan pihak lain</li>
                             <li>Kerusakan akibat faktor eksternal</li>
                             <li>Kerusakan karena perawatan / bahan kimia yang tidak sesuai</li>
-                            <li>Kerusakan di luar ketentuan garansi Lexent.</li>
+                            <li>Kerusakan di luar ketentuan garansi {{ $brandText }}.</li>
                         </ul>
                     </div>
                 </div>
@@ -264,15 +287,15 @@
         <div class="penting">
             <div>
                 <h3><i class="fa-solid fa-circle-exclamation"></i>PENTING</h3>
-                <p>Garansi hanya berlaku untuk produk yang terdaftar pada sistem <u>Lexent E-Warranty</u>. Untuk melakukan klaim garansi, customer wajib menunjukkan <u>Nomor E-Warranty</u> atau melakukan verifikasi melalui sistem <u>e-Warranty Lexent</u>.</p>
+                <p>Garansi hanya berlaku untuk produk yang terdaftar pada sistem <u>{{ $brandText }} E-Warranty</u>. Untuk melakukan klaim garansi, customer wajib menunjukkan <u>Nomor E-Warranty</u> atau melakukan verifikasi melalui sistem <u>e-Warranty {{ $brandText }}</u>.</p>
             </div>
             <div class="cs">
-                <div><i class="fa-brands fa-whatsapp"></i><span><small>Customer Service</small>{{ config('warranty_card.customer_service_whatsapp') }}</span></div>
-                <div><i class="fa-solid fa-globe"></i><span>{{ config('warranty_card.website') }}</span></div>
+                <div><i class="fa-brands fa-whatsapp"></i><span><small>Customer Service</small>{{ $csWhatsapp }}</span></div>
+                @if($csWebsite)<div><i class="fa-solid fa-globe"></i><span>{{ $csWebsite }}</span></div>@endif
             </div>
         </div>
 
-        <footer class="d-foot"><span>DRIVE &nbsp;·&nbsp; BUILD &nbsp;·&nbsp; PROTECT</span><img src="{{ asset('images/lexent-logo.png') }}" alt="LEXENT"></footer>
+        <footer class="d-foot"><span>DRIVE &nbsp;·&nbsp; BUILD &nbsp;·&nbsp; PROTECT</span><img src="{{ $brandLogo }}" alt="{{ $brandName }}" @if($brand === 'GLOSSPRO') class="logo-glosspro" @endif></footer>
     </section>
 </main>
 </body>

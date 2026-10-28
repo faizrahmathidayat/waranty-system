@@ -30,6 +30,11 @@
         <div id="cms-portfolio-list-panel" class="card">
             <div class="card-header">
                 <a href="{{ route('cms.portfolio.create') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Tambah Proyek</a>
+                <select id="filter-site" class="custom-select custom-select-sm d-inline-block ml-2" style="width:auto" aria-label="Filter situs">
+                    <option value="">Semua Situs</option>
+                    <option value="glosspro">GlossPro</option>
+                    <option value="lexent">LEXENT</option>
+                </select>
             </div>
             <div class="card-body">
                 <table id="table-portfolio" class="table table-bordered table-striped" style="width:100%">

@@ -27,9 +27,16 @@ class ArticleController extends Controller
         ]);
     }
 
-    public function data()
+    public function data(Request $request)
     {
-        return DataTables::of(Article::query()->orderByDesc('id'))
+        $query = Article::query()->orderByDesc('id');
+        // Optional site filter from the list page: glosspro | lexent.
+        $site = $request->query('site');
+        if (in_array($site, ['glosspro', 'lexent'], true)) {
+            $query->where('show_on_' . $site, true);
+        }
+
+        return DataTables::of($query)
             ->addColumn('cover', function (Article $article) {
                 $cover = $article->media()->first();
                 return $cover ? $cover->thumbnail_url : null;

@@ -59,7 +59,7 @@ class ServiceCompletionController extends Controller
                 if (! $type->is_active) throw ValidationException::withMessages(['order' => 'Jenis Warranty sedang tidak aktif.']);
                 $first = $items->first();
                 $warranty = Warranty::create([
-                    'kode_warranty' => app(WarrantyCodeGenerator::class)->next(),
+                    'kode_warranty' => app(WarrantyCodeGenerator::class)->next(null, $order->brand),
                     'id_customer' => $order->id_customer, 'id_order' => $order->id_order, 'id_invoice' => $order->activeInvoice->id_invoice,
                     'id_vehicle' => $order->id_vehicle, 'id_building' => $order->id_building, 'id_warranty_type' => $type->id, 'user_id' => Auth::id(), 'id_product' => $first->id_product,
                     'no_invoice' => $order->activeInvoice->invoice_number, 'no_polisi' => optional($order->vehicle)->no_polisi, 'merk_mobil' => optional($order->vehicle)->merk,

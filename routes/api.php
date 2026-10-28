@@ -25,6 +25,7 @@ Route::middleware('cms.api_key')->prefix('cms')->group(function () {
     Route::get('/articles', [ArticleController::class, 'index']);
     Route::get('/articles/{slug}', [ArticleController::class, 'show']);
     Route::get('/catalog', [CatalogController::class, 'index']);
+    Route::get('/catalog-menu', [CatalogController::class, 'menu']);
     Route::get('/catalog/{slug}', [CatalogController::class, 'show']);
     Route::get('/portfolio', [PortfolioController::class, 'index']);
     Route::get('/portfolio-categories', [PortfolioController::class, 'categories']);

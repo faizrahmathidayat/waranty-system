@@ -35,6 +35,11 @@
         <div id="cms-article-list-panel" class="card">
             <div class="card-header">
                 <a href="{{ route('cms.articles.create') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Tambah Artikel</a>
+                <select id="filter-site" class="custom-select custom-select-sm d-inline-block ml-2" style="width:auto" aria-label="Filter situs">
+                    <option value="">Semua Situs</option>
+                    <option value="glosspro">GlossPro</option>
+                    <option value="lexent">LEXENT</option>
+                </select>
             </div>
             <div class="card-body">
                 <table id="table-articles" class="table table-bordered table-striped" style="width:100%">

@@ -28,9 +28,16 @@ class PortfolioController extends Controller
         ]);
     }
 
-    public function data()
+    public function data(Request $request)
     {
-        return DataTables::of(PortfolioItem::query()->orderByDesc('id'))
+        $query = PortfolioItem::query()->orderByDesc('id');
+        // Optional site filter from the list page: glosspro | lexent.
+        $site = $request->query('site');
+        if (in_array($site, ['glosspro', 'lexent'], true)) {
+            $query->where('show_on_' . $site, true);
+        }
+
+        return DataTables::of($query)
             ->addColumn('cover', function (PortfolioItem $item) {
                 $cover = $item->media()->first();
                 return $cover ? $cover->thumbnail_url : null;

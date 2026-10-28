@@ -8,6 +8,7 @@ use App\Models\CmsMedia;
 use App\Services\ImageProcessor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 
 class CatalogController extends Controller
@@ -27,9 +28,16 @@ class CatalogController extends Controller
         ]);
     }
 
-    public function data()
+    public function data(Request $request)
     {
-        return DataTables::of(CatalogItem::query()->orderByDesc('id'))
+        $query = CatalogItem::query()->orderByDesc('id');
+        // Optional site filter from the list page: glosspro | lexent.
+        $site = $request->query('site');
+        if (in_array($site, ['glosspro', 'lexent'], true)) {
+            $query->where('show_on_' . $site, true);
+        }
+
+        return DataTables::of($query)
             ->addColumn('cover', function (CatalogItem $item) {
                 $cover = $item->media()->first();
                 return $cover ? $cover->thumbnail_url : null;
@@ -105,6 +113,7 @@ class CatalogController extends Controller
             'excerpt' => 'nullable|string|max:500',
             'body' => 'required|string',
             'category' => 'nullable|string|max:100',
+            'product' => ['nullable', Rule::in(CatalogItem::PRODUCTS), Rule::requiredIf($request->boolean('show_on_lexent'))],
             'status' => 'required|in:draft,published',
             'published_at' => 'nullable|date',
             'spec_highlights' => 'nullable|array',
@@ -114,6 +123,10 @@ class CatalogController extends Controller
 
         $data['show_on_glosspro'] = $request->boolean('show_on_glosspro');
         $data['show_on_lexent'] = $request->boolean('show_on_lexent');
+        // Product only exists for LEXENT; it drives the compro-2 navbar.
+        if (!$data['show_on_lexent']) {
+            $data['product'] = null;
+        }
         $data['spec_highlights'] = $this->normalizedHighlights($request->input('spec_highlights', []));
 
         if ($data['status'] === 'published' && empty($data['published_at'])) {

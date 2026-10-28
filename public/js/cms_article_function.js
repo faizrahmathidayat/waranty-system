@@ -75,11 +75,18 @@ $(function () {
         });
     });
 
+    $(document).on('change', '#filter-site', function () {
+        $('#table-articles').DataTable().ajax.reload();
+    });
+
     function initDataTable() {
         $('#table-articles').DataTable({
             processing: true,
             serverSide: true,
-            ajax: routes.data,
+            ajax: {
+                url: routes.data,
+                data: function (params) { params.site = $('#filter-site').val(); },
+            },
             columns: [
                 { data: 'cover', orderable: false, render: function (url) { return url ? '<img src="' + url + '" class="cms-cover-thumb">' : '-'; } },
                 { data: 'title' },

@@ -11,8 +11,11 @@ class CatalogItem extends Model
 
     protected $table = 'cms_catalog_items';
 
+    /** LEXENT products a catalog item can belong to; they are the top-level navbar menus of compro-2. */
+    public const PRODUCTS = ['Kaca Film Bangunan', 'Kaca Film Mobil', 'PPF'];
+
     protected $fillable = [
-        'title', 'slug', 'excerpt', 'body', 'category',
+        'title', 'slug', 'excerpt', 'body', 'category', 'product',
         'status', 'published_at', 'show_on_glosspro', 'show_on_lexent',
         'spec_highlights', 'created_by',
     ];

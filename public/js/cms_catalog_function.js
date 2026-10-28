@@ -96,11 +96,18 @@ $(function () {
         $('#cms-highlight-rows').append($row);
     }
 
+    $(document).on('change', '#filter-site', function () {
+        $('#table-catalog').DataTable().ajax.reload();
+    });
+
     function initDataTable() {
         $('#table-catalog').DataTable({
             processing: true,
             serverSide: true,
-            ajax: routes.data,
+            ajax: {
+                url: routes.data,
+                data: function (params) { params.site = $('#filter-site').val(); },
+            },
             columns: [
                 { data: 'cover', orderable: false, render: function (url) { return url ? '<img src="' + url + '" class="cms-cover-thumb">' : '-'; } },
                 { data: 'title' },
@@ -148,6 +155,14 @@ $(function () {
         });
     });
 
+    // The Product select only applies to LEXENT items.
+    function toggleProduct() {
+        var lexent = $('#show_on_lexent').is(':checked');
+        $('#product-group').toggleClass('d-none', !lexent);
+        $('#product').prop('required', lexent);
+    }
+    $(document).on('change', '#show_on_lexent', toggleProduct);
+
     function loadItemForEdit(id) {
         $('#cms-catalog-form-title').text('Edit Item Katalog');
         $('#catalog_id').val(id);
@@ -160,6 +175,8 @@ $(function () {
             $('#status').val(item.status);
             $('#show_on_glosspro').prop('checked', !!item.show_on_glosspro);
             $('#show_on_lexent').prop('checked', !!item.show_on_lexent);
+            $('#product').val(item.product || '');
+            toggleProduct();
             quill.root.innerHTML = item.body || '';
 
             $('#cms-highlight-rows').empty();

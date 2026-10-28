@@ -102,6 +102,59 @@ class DigitalWarrantyPageTest extends TestCase
             ->assertSee('images/warranty-cover.jpg', false);
     }
 
+    public function test_logo_follows_the_order_brand(): void
+    {
+        $lexent = $this->automotiveWarranty(['Kaca Depan']);
+        $this->get('/warranty/' . $lexent)->assertOk()
+            ->assertSee('images/lexent-logo.png', false)->assertDontSee('images/glosspro-logo.png', false)
+            ->assertSee('images/warranty-cover.jpg', false)->assertDontSee('warranty-cover-glosspro.jpg', false);
+
+        Warranty::where('kode_warranty', $lexent)->firstOrFail()->order()->update(['brand' => 'GLOSSPRO']);
+        $this->get('/warranty/' . $lexent)->assertOk()
+            ->assertSee('images/glosspro-logo.png', false)->assertDontSee('images/lexent-logo.png', false)
+            ->assertSee('images/warranty-cover-glosspro.jpg', false)
+            ->assertSee('Official E-Warranty GlossPro');
+    }
+
+    public function test_glosspro_card_has_its_own_product_list_contact_and_wording(): void
+    {
+        $kode = $this->automotiveWarranty(['Kaca Depan']);
+        $this->get('/warranty/' . $kode)->assertOk()
+            ->assertSee('semua produk Lexent', false)->assertSee('Kaca Film Bangunan')->assertDontSee('Anti Karat');
+
+        Warranty::where('kode_warranty', $kode)->firstOrFail()->order()->update(['brand' => 'GLOSSPRO']);
+        $this->get('/warranty/' . $kode)->assertOk()
+            ->assertSee('semua produk GlossPro', false)
+            ->assertSeeInOrder(['Kaca Film Mobil', 'Coating', 'PPF', 'Anti Karat'])
+            ->assertDontSee('Kaca Film Bangunan')->assertDontSee('Lexent')
+            ->assertSee('0858 8889 9558')->assertDontSee('0815 1345 5525')->assertSee('www.glossproindonesia.com')->assertDontSee('lexentindonesia');
+    }
+
+    public function test_warranty_code_prefix_follows_the_order_brand(): void
+    {
+        $vehicle = Vehicle::factory()->create(['id_customer' => $this->customer->id_customer]);
+        $type = ProductType::factory()->create(['order_category' => 'AUTOMOTIVE']);
+        $product = Product::factory()->create(['id_product_type' => $type->id_product_type, 'status' => 'enabled', 'is_warranty_eligible' => true]);
+        $details = [['id_product_type' => $type->id_product_type, 'id_product' => $product->id_product, 'area' => 'Kaca Depan']];
+
+        $kode = $this->warranty(['order_type' => 'AUTOMOTIVE', 'brand' => 'GLOSSPRO', 'id_vehicle' => $vehicle->id_vehicle, 'subtotal' => 500000], $details);
+
+        $this->assertSame('GP-' . now()->format('Y') . '-00001', $kode);
+    }
+
+    public function test_product_status_is_inactive_once_the_item_has_expired(): void
+    {
+        $kode = $this->automotiveWarranty(['Kaca Depan']);
+        $warranty = Warranty::where('kode_warranty', $kode)->firstOrFail();
+        $warranty->warrantyItems()->update(['tanggal_expired' => now()->subDay()->toDateString()]);
+
+        $html = $this->get('/warranty/' . $kode)->assertOk()->getContent();
+        preg_match('/<h2>Informasi Produk<\/h2>(.*?)<div class="sec-wrap">/s', $html, $m);
+
+        $this->assertStringContainsString('Inactive', $m[1]);
+        $this->assertStringNotContainsString('>Active<', $m[1]);
+    }
+
     public function test_automotive_lists_one_table_row_per_product_with_jenis_tipe_and_area(): void
     {
         $kode = $this->automotiveWarranty(['Kaca Depan']);
@@ -111,7 +164,7 @@ class DigitalWarrantyPageTest extends TestCase
         $section = preg_replace('/\s+/', ' ', strip_tags(str_replace(['</th>', '</td>'], ['</th> ', '</td> '], $m[1])));
 
         $this->assertStringContainsString('<table class="ptable">', $m[1]);
-        $this->assertStringContainsString('Jenis Produk Tipe Area Berlaku Mulai Berlaku Sampai Kaca Film LEXENT HT Kaca Depan '.now()->format('d / m / Y').' '.now()->addMonths(6)->format('d / m / Y'), $section);
+        $this->assertStringContainsString('Jenis Produk Tipe Area Berlaku Mulai Berlaku Sampai Status Kaca Film LEXENT HT Kaca Depan '.now()->format('d / m / Y').' '.now()->addMonths(6)->format('d / m / Y').' Active', $section);
         foreach (['Samping Depan', 'Samping Belakang', 'Belakang', 'Sunroof'] as $other) {
             $this->assertStringNotContainsString($other, $section);
         }
@@ -185,19 +238,26 @@ class DigitalWarrantyPageTest extends TestCase
     {
         $kode = $this->automotiveWarranty(['Kaca Depan']);
 
-        $this->get('/warranty/' . $kode)->assertSee('0815 1345 5525')->assertSee('www.lexentindonesia.com');
+        $this->get('/warranty/' . $kode)->assertSee('0858 8889 9558')->assertSee('www.lexentindonesia.com');
 
         config(['warranty_card.customer_service_whatsapp' => '0811 000 111', 'warranty_card.website' => 'www.contoh.test']);
 
-        $this->get('/warranty/' . $kode)->assertSee('0811 000 111')->assertSee('www.contoh.test')->assertDontSee('0815 1345 5525');
+        $this->get('/warranty/' . $kode)->assertSee('0811 000 111')->assertSee('www.contoh.test')->assertDontSee('0858 8889 9558');
     }
 
-    public function test_expired_warranty_is_labelled_expired(): void
+    public function test_cover_label_is_inactive_only_when_every_product_is_inactive(): void
     {
-        $kode = $this->automotiveWarranty(['Kaca Depan']);
-        Warranty::where('kode_warranty', $kode)->update(['tanggal_expired' => now()->subDay()->toDateString()]);
+        $kode = $this->automotiveWarranty(['Kaca Depan', 'Belakang']);
+        $warranty = Warranty::where('kode_warranty', $kode)->firstOrFail();
+        $expired = now()->subDay()->toDateString();
 
-        $this->get('/warranty/' . $kode)->assertOk()->assertSee('WARRANTY EXPIRED');
+        // One product expired, one still running: the card stays active.
+        $warranty->warrantyItems()->orderBy('id_warranty_item')->first()->update(['tanggal_expired' => $expired]);
+        $this->get('/warranty/' . $kode)->assertOk()->assertSee('WARRANTY ACTIVE')->assertDontSee('WARRANTY INACTIVE');
+
+        // Every product expired: the card is inactive.
+        $warranty->warrantyItems()->update(['tanggal_expired' => $expired]);
+        $this->get('/warranty/' . $kode)->assertOk()->assertSee('WARRANTY INACTIVE')->assertDontSee('WARRANTY ACTIVE');
     }
 
     public function test_void_or_unknown_warranty_is_not_found(): void

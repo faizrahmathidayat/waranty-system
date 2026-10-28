@@ -24,11 +24,19 @@ class CatalogController extends Controller
         $perPage = (int) $request->query('per_page', self::DEFAULT_PER_PAGE);
         $perPage = $perPage > 0 ? min($perPage, self::MAX_PER_PAGE) : self::DEFAULT_PER_PAGE;
 
-        $items = CatalogItem::published()
-            ->forSite($site)
-            ->with('media')
-            ->orderByDesc('published_at')
-            ->paginate($perPage);
+        $query = CatalogItem::published()->forSite($site)->with('media');
+
+        $category = trim((string) $request->query('category', ''));
+        if ($category !== '') {
+            $query->whereRaw('LOWER(category) = ?', [mb_strtolower($category)]);
+        }
+
+        $product = trim((string) $request->query('product', ''));
+        if ($product !== '') {
+            $query->whereRaw('LOWER(product) = ?', [mb_strtolower($product)]);
+        }
+
+        $items = $query->orderByDesc('published_at')->paginate($perPage);
 
         return response()->json([
             'data' => $items->getCollection()->map(function (CatalogItem $item) {
@@ -41,6 +49,45 @@ class CatalogController extends Controller
                 'total' => $items->total(),
             ],
         ]);
+    }
+
+    /**
+     * Navbar menu for a site: every product with the distinct categories that
+     * currently have a published item under it, e.g.
+     * {"Kaca Film Bangunan": ["Black Vision", ...], "Kaca Film Mobil": [], "PPF": []}.
+     */
+    public function menu(Request $request)
+    {
+        $site = $this->validateSite($request);
+        if ($site === null) {
+            return response()->json(['message' => 'Parameter site wajib diisi dengan glosspro atau lexent.'], 400);
+        }
+
+        $menu = array_fill_keys(CatalogItem::PRODUCTS, []);
+        $rows = CatalogItem::published()->forSite($site)
+            ->whereIn('product', CatalogItem::PRODUCTS)
+            ->whereNotNull('category')
+            ->orderBy('category')
+            ->get(['product', 'category']);
+
+        foreach ($rows as $row) {
+            $category = trim($row->category);
+            if ($category === '') {
+                continue;
+            }
+            $key = mb_strtolower($category);
+            if (!isset($menu[$row->product][$key])) {
+                $menu[$row->product][$key] = $category;
+            }
+        }
+
+        foreach ($menu as $product => $categories) {
+            $categories = array_values($categories);
+            sort($categories, SORT_NATURAL | SORT_FLAG_CASE);
+            $menu[$product] = $categories;
+        }
+
+        return response()->json(['data' => $menu]);
     }
 
     public function show(Request $request, string $slug)
@@ -58,7 +105,6 @@ class CatalogController extends Controller
 
         $payload = $this->summarize($item);
         $payload['body'] = $item->body;
-        $payload['spec_highlights'] = $item->spec_highlights ?: [];
         $payload['media'] = $item->media->map(function (CmsMedia $media) {
             return $this->mediaPayload($media);
         })->all();
@@ -82,6 +128,8 @@ class CatalogController extends Controller
             'title' => $item->title,
             'excerpt' => $excerpt,
             'category' => $item->category,
+            'product' => $item->product,
+            'spec_highlights' => $item->spec_highlights ?: [],
             'published_at' => optional($item->published_at)->toIso8601String(),
             'cover' => $cover ? $this->mediaPayload($cover) : null,
         ];

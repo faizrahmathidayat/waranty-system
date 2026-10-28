@@ -6,7 +6,9 @@ use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Builds warranty numbers as LEX-{year}-{sequence}, e.g. LEX-2026-00001.
+ * Builds warranty numbers as {prefix}-{year}-{sequence}, e.g. LEX-2026-00001.
+ * The prefix follows the order brand (LEXENT => LEX, GLOSSPRO => GP) and each
+ * prefix keeps its own sequence.
  *
  * The sequence restarts at 00001 every year. It is padded to 5 digits as a
  * minimum only, so past 99999 it simply grows (LEX-2026-100000) and stays
@@ -20,12 +22,12 @@ use Illuminate\Support\Facades\DB;
  */
 class WarrantyCodeGenerator
 {
-    public const PREFIX = 'LEX';
+    public const PREFIXES = ['LEXENT' => 'LEX', 'GLOSSPRO' => 'GP'];
 
-    public function next(?CarbonInterface $at = null): string
+    public function next(?CarbonInterface $at = null, ?string $brand = null): string
     {
         $year = ($at ?? now())->format('Y');
-        $prefix = self::PREFIX . '-' . $year . '-';
+        $prefix = (self::PREFIXES[$brand] ?? self::PREFIXES['LEXENT']) . '-' . $year . '-';
 
         $last = (int) DB::table('warranties')
             ->where('kode_warranty', 'like', $prefix . '%')

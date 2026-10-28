@@ -42,6 +42,20 @@ class CatalogAdminTest extends TestCase
         $this->assertCount(1, $item->media);
     }
 
+    public function test_lexent_items_need_a_valid_product_and_it_is_dropped_for_other_sites(): void
+    {
+        $base = ['title' => 'P', 'slug' => 'p', 'body' => '<p>x</p>', 'status' => 'draft'];
+
+        $this->postJson('/cms/catalog', $base + ['show_on_lexent' => '1'])->assertStatus(422)->assertJsonValidationErrors('product');
+        $this->postJson('/cms/catalog', $base + ['show_on_lexent' => '1', 'product' => 'Mobil Mainan'])->assertStatus(422)->assertJsonValidationErrors('product');
+
+        $this->postJson('/cms/catalog', $base + ['show_on_lexent' => '1', 'product' => 'PPF', 'category' => 'Type S'])->assertOk();
+        $this->assertSame('PPF', CatalogItem::where('slug', 'p')->value('product'));
+
+        $this->postJson('/cms/catalog', ['slug' => 'q'] + $base + ['show_on_glosspro' => '1', 'product' => 'PPF'])->assertOk();
+        $this->assertNull(CatalogItem::where('slug', 'q')->value('product'));
+    }
+
     public function test_store_saves_an_empty_array_when_no_spec_highlights_are_entered(): void
     {
         $response = $this->postJson('/cms/catalog', [

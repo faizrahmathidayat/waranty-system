@@ -307,7 +307,8 @@ class OrderController extends Controller
             $lebar = null;
             $totalLuas = $orderType === 'BUILDING' ? round((float) $data['total_luas'], 2) : null;
             $luasPerItem = $orderType === 'BUILDING' ? round($totalLuas / $quantity, 2) : null;
-            $unit = ($data['unit'] ?? null) ?: ($orderType === 'BUILDING' ? 'm2' : 'unit');
+            // Automotive items have no unit choice; always the plain "unit".
+            $unit = $orderType === 'BUILDING' ? (($data['unit'] ?? null) ?: 'm2') : 'unit';
             // The discount comes off the unit price first (stored per unit/m²);
             // the subtotal is then (price - discount) x total luas (Building) or
             // x quantity (Automotive and PPF).

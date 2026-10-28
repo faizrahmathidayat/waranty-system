@@ -33,6 +33,11 @@
         <div id="cms-catalog-list-panel" class="card">
             <div class="card-header">
                 <a href="{{ route('cms.catalog.create') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Tambah Item Katalog</a>
+                <select id="filter-site" class="custom-select custom-select-sm d-inline-block ml-2" style="width:auto" aria-label="Filter situs">
+                    <option value="">Semua Situs</option>
+                    <option value="glosspro">GlossPro</option>
+                    <option value="lexent">LEXENT</option>
+                </select>
             </div>
             <div class="card-body">
                 <table id="table-catalog" class="table table-bordered table-striped" style="width:100%">
@@ -97,6 +102,16 @@
                             <input type="checkbox" class="custom-control-input" id="show_on_lexent" name="show_on_lexent" value="1">
                             <label class="custom-control-label" for="show_on_lexent">LEXENT (compro-2)</label>
                         </div>
+                    </div>
+                    <div class="form-group d-none" id="product-group">
+                        <label>Product (LEXENT)</label>
+                        <select class="form-control" id="product" name="product">
+                            <option value="">Pilih Product</option>
+                            @foreach(\App\Models\CatalogItem::PRODUCTS as $product)
+                                <option value="{{ $product }}">{{ $product }}</option>
+                            @endforeach
+                        </select>
+                        <small class="form-text text-muted">Menentukan menu di navbar LEXENT. Kategori di atas menjadi isi dropdown product ini.</small>
                     </div>
                     <div class="form-group">
                         <label>Status</label>

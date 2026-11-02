@@ -2,8 +2,10 @@
 @php
     $orderBrand = optional($invoice->order)->brand;
     $isLexent = $orderBrand === 'LEXENT';
+    $isGlosspro = $orderBrand === 'GLOSSPRO';
+    $hasLetterhead = $isLexent || $isGlosspro;
     $isAutomotive = optional($invoice->order)->order_type === 'AUTOMOTIVE';
-    $lexentLogo = asset(\App\Models\Order::BRAND_LOGOS['LEXENT']);
+    $brandLogo = $isGlosspro ? asset('images/glosspro-invoice-logo.png') : ($isLexent ? asset(\App\Models\Order::BRAND_LOGOS['LEXENT']) : null);
 @endphp
 <html><head><meta charset="utf-8"><title>{{ $invoice->invoice_number }}</title><style>
 body{font-family:Arial;margin:0;font-size:12px;color:#000}
@@ -17,6 +19,7 @@ th,td{border:1px solid #555;padding:7px;text-align:left}
 .pg-body{padding:0 15mm}
 .lx-head{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #3b78c3;padding-bottom:14px;margin-bottom:22px}
 .lx-head img{height:34px}
+.lx-head.gp{border-bottom-color:#e10600}.lx-head.gp img{height:78px}
 .lx-contact{text-align:right;line-height:1.55;color:#6b7280;font-size:13px}
 .lx-contact b{display:block;color:#16233b;font-family:Cambria,Georgia,serif;font-size:13px;letter-spacing:.2px}
 .terms-page{page-break-before:always;break-before:page}
@@ -27,6 +30,7 @@ th,td{border:1px solid #555;padding:7px;text-align:left}
 .lx-foot b{display:block;font-size:13px;letter-spacing:.3px;margin-bottom:4px}
 .lx-foot span{font-size:10.5px;letter-spacing:.2px}
 .lx-foot i{display:block;height:14px;background:#1e1e1e;margin-top:14px}
+.lx-foot.gp{color:#000}.lx-foot.gp b{font-weight:400;font-size:12px;letter-spacing:0;margin-bottom:2px}.lx-foot.gp span{font-size:12px;letter-spacing:0}.lx-foot.gp i{height:20px;margin-top:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact;background:linear-gradient(90deg,#d91a1a 0 18.2%,#b51c1c 0 36.3%,#8f1d1e 0 51.2%,#6e1f20 0 66.2%,#482022 0 81.1%,#312123 0 96.1%,#040505 0 100%)}
 @media print{
     @page{size:A4 portrait;margin:0}
     button{display:none}
@@ -35,13 +39,18 @@ th,td{border:1px solid #555;padding:7px;text-align:left}
 </style></head><body>
 @if($isLexent)<div class="lx-wm"><img src="{{ asset('images/lexent-watermark.png') }}" alt=""></div>@endif
 <table class="pg">
-<thead><tr><td><div style="height:{{ $isLexent ? '14mm' : '12mm' }}"></div></td></tr></thead>
-<tfoot><tr><td><div style="height:{{ $isLexent ? '38mm' : '12mm' }}"></div></td></tr></tfoot>
+<thead><tr><td><div style="height:{{ $hasLetterhead ? '14mm' : '12mm' }}"></div></td></tr></thead>
+<tfoot><tr><td><div style="height:{{ $hasLetterhead ? '38mm' : '12mm' }}"></div></td></tr></tfoot>
 <tbody><tr><td><div class="pg-body">
 @if($isLexent)
 <div class="lx-head">
-    <img src="{{ $lexentLogo }}" alt="LEXENT">
+    <img src="{{ $brandLogo }}" alt="LEXENT">
     <div class="lx-contact"><b>CONTACT INFORMATION</b>Ruko La Valle, Citra Garden Serpong No.66 Blk B17<br>0858 8889 9558<br>Lexentindonesia.com</div>
+</div>
+@elseif($isGlosspro)
+<div class="lx-head gp">
+    <img src="{{ $brandLogo }}" alt="GlossPro">
+    <div class="lx-contact"><b>CONTACT INFORMATION</b>Ruko La Valle, Citra Garden Serpong No.66 Blk B17<br>Cisauk, Kota Tangerang Selatan, Banten 15341</div>
 </div>
 @endif
 <h1>INVOICE</h1><p><b>{{ $invoice->invoice_number }}</b><br>Date: {{ $invoice->invoice_date->format('d M Y') }}</p>
@@ -69,5 +78,7 @@ th,td{border:1px solid #555;padding:7px;text-align:left}
 </table>
 @if($isLexent)
 <div class="lx-foot"><b>LEXENT :</b><span>BUILDING WINDOWFILM &nbsp;•&nbsp; AUTOMOTIVE WINDOWFILM &nbsp;•&nbsp; PAINT PROTECTION FILM</span><i></i></div>
+@elseif($isGlosspro)
+<div class="lx-foot gp"><b>Glosspro</b><span>Ruko La Valle, Citra Garden Serpong No.66 Blk B17, Cisauk, Kec. Cisauk, Kota Tangerang Selatan, Banten 15341</span><i></i></div>
 @endif
 <script>window.onload=()=>window.print()</script></body></html>

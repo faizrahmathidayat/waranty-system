@@ -126,7 +126,7 @@ class OrderAreaProductTest extends TestCase
 
         $this->get("/invoice/print/{$idInvoice}")->assertOk()
             ->assertSee('lexent-logo.png', false)->assertSee('lexent-watermark.png', false)
-            ->assertSee('CONTACT INFORMATION')->assertSee('Lexentindonesia.com')
+            ->assertSee('CONTACT INFORMATION')->assertSee('www.lexentindonesia.com')
             ->assertSee('BUILDING WINDOWFILM', false)->assertSee('PAINT PROTECTION FILM')
             ->assertSee('KETENTUAN GARANSI DAN LAYANAN')->assertDontSee('Hormat kami');
         $this->assertFileExists(public_path('images/lexent-watermark.png'));
@@ -138,10 +138,10 @@ class OrderAreaProductTest extends TestCase
         $idInvoice = $this->postJson("/invoice/generate/{$id}")->assertOk()->json('id_invoice');
 
         $this->get("/invoice/print/{$idInvoice}")->assertOk()
-            ->assertSee('glosspro-invoice-logo.png', false)->assertSee('CONTACT INFORMATION')
+            ->assertSee('glosspro-invoice-logo.png', false)->assertSee('CONTACT INFORMATION')->assertSee('www.glossproindonesia.com')
             ->assertSee('Ruko La Valle, Citra Garden Serpong No.66 Blk B17, Cisauk, Kec. Cisauk, Kota Tangerang Selatan, Banten 15341', false)
             ->assertDontSee('lexent-logo.png', false)->assertDontSee('lexent-watermark.png', false)
-            ->assertDontSee('Lexentindonesia.com')->assertDontSee('BUILDING WINDOWFILM', false)
+            ->assertDontSee('lexentindonesia.com')->assertDontSee('BUILDING WINDOWFILM', false)
             ->assertSee('KETENTUAN GARANSI DAN LAYANAN')->assertDontSee('Hormat kami');
     }
 

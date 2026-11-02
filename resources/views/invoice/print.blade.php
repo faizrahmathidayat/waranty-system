@@ -45,12 +45,12 @@ th,td{border:1px solid #555;padding:7px;text-align:left}
 @if($isLexent)
 <div class="lx-head">
     <img src="{{ $brandLogo }}" alt="LEXENT">
-    <div class="lx-contact"><b>CONTACT INFORMATION</b>Ruko La Valle, Citra Garden Serpong No.66 Blk B17<br>0858 8889 9558<br>Lexentindonesia.com</div>
+    <div class="lx-contact"><b>CONTACT INFORMATION</b>Ruko La Valle, Citra Garden Serpong No.66 Blk B17<br>0858 8889 9558<br>www.lexentindonesia.com</div>
 </div>
 @elseif($isGlosspro)
 <div class="lx-head gp">
     <img src="{{ $brandLogo }}" alt="GlossPro">
-    <div class="lx-contact"><b>CONTACT INFORMATION</b>Ruko La Valle, Citra Garden Serpong No.66 Blk B17<br>Cisauk, Kota Tangerang Selatan, Banten 15341</div>
+    <div class="lx-contact"><b>CONTACT INFORMATION</b>Ruko La Valle, Citra Garden Serpong No.66 Blk B17<br>Cisauk, Kota Tangerang Selatan, Banten 15341<br>www.glossproindonesia.com</div>
 </div>
 @endif
 <h1>INVOICE</h1><p><b>{{ $invoice->invoice_number }}</b><br>Date: {{ $invoice->invoice_date->format('d M Y') }}</p>

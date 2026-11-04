@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BankAccount;
 use App\Models\Invoice;
 use App\Models\Order;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -61,7 +62,7 @@ class InvoiceController extends Controller
         } catch (\Throwable $exception) { Log::error('Invoice cancellation failed.', ['id_invoice' => $id, 'exception' => $exception]); return response()->json(['message' => 'Gagal membatalkan Invoice.'], 500); }
     }
 
-    public function print($id) { $this->auth(); $invoice = Invoice::with(['items', 'order.vehicle', 'order.building', 'customer'])->findOrFail($id); $bankAccounts = BankAccount::active()->orderBy('bank_name')->get(); return view('invoice.print', compact('invoice', 'bankAccounts')); }
+    public function print(Request $request, $id) { $this->auth(); $invoice = Invoice::with(['items.orderDetail.product.productType', 'order.vehicle', 'order.building', 'customer'])->findOrFail($id); $bankAccounts = BankAccount::active()->orderBy('bank_name')->get(); $design = (int) $request->query('design') === 2 ? 2 : 1; return Pdf::loadView('invoice.print', compact('invoice', 'bankAccounts', 'design'))->setPaper('a4', 'portrait')->stream($invoice->invoice_number.'.pdf'); }
 
     private function createFromOrder($idOrder): Invoice
     {

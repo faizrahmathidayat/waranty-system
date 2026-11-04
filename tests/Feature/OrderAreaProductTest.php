@@ -124,7 +124,7 @@ class OrderAreaProductTest extends TestCase
         $id = $this->postJson('/order/store', $this->payload([$this->item()], ['brand' => 'LEXENT']))->json('id_order');
         $idInvoice = $this->postJson("/invoice/generate/{$id}")->assertOk()->json('id_invoice');
 
-        $this->get("/invoice/print/{$idInvoice}")->assertOk()
+        $this->invoicePrint($idInvoice)->assertOk()
             ->assertSee('lexent-logo.png', false)->assertSee('lexent-watermark.png', false)
             ->assertSee('CONTACT INFORMATION')->assertSee('www.lexentindonesia.com')
             ->assertSee('BUILDING WINDOWFILM', false)->assertSee('PAINT PROTECTION FILM')
@@ -137,7 +137,7 @@ class OrderAreaProductTest extends TestCase
         $id = $this->postJson('/order/store', $this->payload([$this->item()], ['brand' => 'GLOSSPRO']))->json('id_order');
         $idInvoice = $this->postJson("/invoice/generate/{$id}")->assertOk()->json('id_invoice');
 
-        $this->get("/invoice/print/{$idInvoice}")->assertOk()
+        $this->invoicePrint($idInvoice)->assertOk()
             ->assertSee('glosspro-invoice-logo.png', false)->assertSee('CONTACT INFORMATION')->assertSee('www.glossproindonesia.com')
             ->assertSee('Ruko La Valle, Citra Garden Serpong No.66 Blk B17, Cisauk, Kec. Cisauk, Kota Tangerang Selatan, Banten 15341', false)
             ->assertDontSee('lexent-logo.png', false)->assertDontSee('lexent-watermark.png', false)
@@ -199,9 +199,41 @@ class OrderAreaProductTest extends TestCase
         $idInvoice = $this->postJson("/invoice/generate/{$id}")->assertOk()->json('id_invoice');
 
         $this->assertEquals(700000, \App\Models\Invoice::findOrFail($idInvoice)->grand_total);
-        $this->get("/invoice/print/{$idInvoice}")->assertOk()
+        $this->invoicePrint($idInvoice)->assertOk()
             ->assertSee('Rp 700.000,00', false)->assertDontSee('Unit Price')->assertDontSee('<th>Discount</th>', false);
         $this->get("/invoice/show/{$idInvoice}")->assertOk()->assertDontSee('Unit Price');
+    }
+
+    public function test_invoice_print_design_2_uses_product_and_product_type_columns(): void
+    {
+        $id = $this->postJson('/order/store', $this->payload([$this->item()]))->json('id_order');
+        $idInvoice = $this->postJson("/invoice/generate/{$id}")->assertOk()->json('id_invoice');
+
+        $this->invoicePrint($idInvoice, 2)->assertOk()
+            ->assertSeeInOrder(['<th>No.</th>', '<th>Produk</th>', '<th>Tipe Produk</th>', '<th>Qty</th>'], false)
+            ->assertDontSee('Area / Luas')->assertDontSee('Description');
+        $this->invoicePrint($idInvoice, 1)->assertOk()
+            ->assertSee('Area / Luas')->assertDontSee('Tipe Produk');
+        $this->invoicePrint($idInvoice)->assertOk()->assertSee('Area / Luas');
+
+        foreach (['', '?design=2'] as $query) {
+            $response = $this->get("/invoice/print/{$idInvoice}{$query}")->assertOk();
+            $this->assertStringContainsString('application/pdf', $response->headers->get('Content-Type'));
+            $this->assertStringStartsWith('%PDF', $response->getContent());
+        }
+    }
+
+    public function test_invoice_print_shows_the_order_notes_beside_the_totals(): void
+    {
+        $id = $this->postJson('/order/store', $this->payload([$this->item()], ['notes' => 'Pengerjaan hari Sabtu <pagi>']))->json('id_order');
+        $idInvoice = $this->postJson("/invoice/generate/{$id}")->assertOk()->json('id_invoice');
+
+        foreach ([1, 2] as $design) {
+            $this->invoicePrint($idInvoice, $design)->assertSee('Notes')->assertSee('Pengerjaan hari Sabtu &lt;pagi&gt;', false);
+        }
+
+        $idNoNotes = $this->postJson('/order/store', $this->payload([$this->item()], ['notes' => null]))->json('id_order');
+        $this->invoicePrint($this->postJson("/invoice/generate/{$idNoNotes}")->json('id_invoice'))->assertDontSee('<b>Notes</b>', false);
     }
 
     public function test_the_product_type_must_belong_to_the_chosen_product(): void

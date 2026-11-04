@@ -62,7 +62,7 @@ class BankAccountInvoiceTest extends TestCase
         BankAccount::factory()->create(['bank_name' => 'Mandiri', 'account_number' => '9876543210', 'account_holder' => 'PT Contoh Jaya']);
         BankAccount::factory()->create(['bank_name' => 'BNI', 'account_number' => '5555555555', 'is_active' => false]);
 
-        $this->get('/invoice/print/'.$this->makeInvoice())
+        $this->invoicePrint($this->makeInvoice())
             ->assertOk()
             ->assertSee('Pembayaran melalui transfer')
             ->assertSee('BCA')
@@ -76,7 +76,7 @@ class BankAccountInvoiceTest extends TestCase
     {
         BankAccount::factory()->create(['is_active' => false]);
 
-        $this->get('/invoice/print/'.$this->makeInvoice())
+        $this->invoicePrint($this->makeInvoice())
             ->assertOk()
             ->assertDontSee('Pembayaran melalui transfer');
     }

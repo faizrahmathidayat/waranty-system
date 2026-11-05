@@ -23,6 +23,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::middleware('cms.api_key')->prefix('cms')->group(function () {
     Route::get('/articles', [ArticleController::class, 'index']);
+    Route::get('/article-categories', [ArticleController::class, 'categories']);
     Route::get('/articles/{slug}', [ArticleController::class, 'show']);
     Route::get('/catalog', [CatalogController::class, 'index']);
     Route::get('/catalog-menu', [CatalogController::class, 'menu']);
